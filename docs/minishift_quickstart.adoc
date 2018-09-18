@@ -1,0 +1,103 @@
+== Minishift Quick Start Guide
+Minishift v1.24 is built using OKD 3.10
+
+The https://connect.redhat.com[Red Hat Connect for Technology Partners] team suggests using minishift for operator development and testing purposes.
+
+Other platforms can be used if desired, such as:
+
+* https://www.openshift.com/products/container-platform/[OpenShift Container Platform]
+* https://okd.io[OKD (formerly OpenShift Origin)]
+* https://developers.redhat.com/products/cdk/download/[Container Development Kit] 
+* https://github.com/kubernetes/minikube[Minikube]
+* `oc cluster up` (requires docker and the https://access.redhat.com/downloads/content/290/[OpenShift Client])
+
+Currently, Minishift is the easiest way to get a minimal OpenShift cluster up and running in the least amount of time.
+
+=== Setup the Virtualization Environment
+Install the `docker-machine-kvm` driver (minishift is tested against version 0.7.0):
+
+----
+# curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.7.0/docker-machine-driver-kvm -o /usr/local/bin/docker-machine-driver-kvm
+# chmod +x /usr/local/bin/docker-machine-driver-kvm
+----
+
+Install `libvirt` and `qemu-kvm`:
+
+ # yum install libvirt qemu-kvm
+
+Add yourself to the `libvirt` group:
+
+ # usermod -a -G libvirt <username>
+
+Update your active session to apply the group membership change:
+
+ $ newgrp libvirt
+
+Start/enable the `libvirtd` service:
+
+----
+# systemctl start libvirtd
+# systemctl enable libvirtd
+----
+
+=== Download and Install Minishift
+Download the archive for your operating system from the https://github.com/minishift/minishift/releases[Minishift Releases] page, and extract the contents.
+
+Copy the minishift binary into your preferred location (eg: `$HOME/bin` or `/usr/local/bin`).
+
+Add the `minishift` binary to your `PATH` environment variable (not necessary if using the above suggested locations).
+
+=== Enable the OC Client:
+The `oc` binary is located in the `~/.minishift/cache/oc/v3.10.0` directory, assuming you are using Minishift's default version of OpenShift. You can enable the client using one of two methods:
+
+* Copy the oc binary from the path above into your user's `$HOME/bin` directory:
+
+ $ cp ~/.minishift/cache/oc/v3.10.0/linux/oc $HOME/bin/oc
+
+* Or copy the binary into `/usr/local/bin` to make it globally available:
+
+ $ cp ~/.minishift/cache/oc/v3.10.0/linux/oc $HOME/bin/oc
+
+The `minishift oc-env` command prints the absolute path of Minishift's `oc` binary. You can embed this command in an `eval` statement which will update your `$PATH` to include the path to the `oc` binary:
+
+ $ eval $(minishift oc-env)
+
+Test the `oc` command:
+
+ $ oc version
+
+Regardless of the chosen method, the following command will create a symlink to the `oc` binary named `kubectl`. This is for drop-in compatibility with upstream k8s commands:
+
+ $ ln -s $(which oc) $(dirname $(which oc))/kubectl
+
+NOTE: You'll need root permissions to create the symlink if you installed `oc` to `/usr/local/bin`
+
+Test the `kubectl` command:
+
+ $ kubectl version
+
+=== Launch Minishift
+Run the `minishift start` command:
+
+----
+$ minishift start
+-- Starting profile 'minishift'
+...
+-- Minishift VM will be configured with ...
+   Memory:    4 GB
+   vCPUs :    2
+   Disk size: 20 GB
+-- Starting Minishift VM .......................... OK
+...
+OpenShift server started.
+
+The server is accessible via web console at:
+    https://192.168.42.60:8443
+
+You are logged in as:
+    User:     developer
+    Password: <any value>
+
+To login as administrator:
+    oc login -u system:admin
+----
