@@ -1,0 +1,167 @@
+== Helm Operator Quick Start Guide
+
+This guide is intended to help you build a Helm Operator from an existing Helm chart.
+
+=== Prerequisites
+* RHEL, CentOS or Fedora host
+* Minishift or any other Kubernetes or OpenShift cluster
+* Podman (for generating the registry auth file for RHC)
+* Buildah
+* git
+* Helm chart for your application
+* https://connect.redhat.com[Red Hat Connect] account
+* Project created in the Container Zone on Red Hat Connect
+
+=== Obtaining the Helm App Operator Kit
+
+First, clone the following github repo:
+
+ $ git clone https://github.com/operator-framework/helm-app-operator-kit
+
+Change into the repo directory:
+
+ $ cd helm-app-operator-kit/
+
+Update the Dockerfile to build using `rhel-atomic` instead of alpine (required for RHCC):
+
+ $ sed -i ./Dockerfile -e 's,alpine:3\.6,registry\.access\.redhat\.com/rhel\-atomic,'
+
+Check the Dockerfile contents:
+
+----
+...
+
+FROM registry.access.redhat.com/rhel-atomic
+ARG HELM_CHART
+ARG API_VERSION
+ARG KIND
+ENV API_VERSION $API_VERSION
+ENV KIND $KIND
+WORKDIR /
+COPY --from=builder \
+/go/src/github.com/operator-framework/helm-app-operator-kit/helm-app-operator/bin/operator /operator
+ADD $HELM_CHART /chart.tgz
+RUN INSTALL_PKGS="tar gzip" && \
+	microdnf --enablerepo=rhel-7-server-rpms install --nodocs ${INSTALL_PKGS} && \
+	mkdir /chart && tar xzvf /chart.tgz -C /chart --strip-components=1 && \
+	rm /chart.tgz && \
+	microdnf remove ${INSTALL_PKGS}
+ENV HELM_CHART /chart
+----
+
+Build the operator image from the included `Dockerfile` using `buildah`, substituting your quay.io info, Helm chart tarball, API Version and Kind:
+
+ $ buildah bud -t scan.connect.redhat.com/<project_id>/operator-test:0.1.0 --build-arg HELM_CHART=https://storage.googleapis.com/kubernetes-charts/tomcat-0.1.0.tgz   --build-arg API_VERSION=apache.org/v1alpha1   --build-arg KIND=Tomcat .
+
+
+Login to the Red Hat Connect scanning registry using `podman`:
+
+ $ podman login -u unused -p <rhc_registry_key>
+
+Push your image to the scanning registry:
+
+ $ buildah push localhost/<vendor>/<product>-operator:0.1.0 \
+ scan.connect.redhat.com/<projectid>/<product>-operator:0.1.0
+
+Edit `./helm-app-operator/deploy/crd.yaml`, replacing each `<tagged>` value to match:
+
+----
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: <product>s.<vendor>.com
+spec:
+  group: <vendor>.com
+  names:
+    kind: <Product>
+    listKind: <Product>List
+    plural: <product>s
+    singular: <product>
+  scope: Namespaced
+  version: v1alpha1
+----
+
+Edit `./helm-app-operator/deploy/operator.yaml`, substituting as required:
+
+----
+...
+metadata:
+  name: <product>-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: <product>-operator
+  template:
+    metadata:
+      labels:
+        name: <product>-operator
+    spec:
+      containers:
+        - name: <product>-operator
+          image: scan.connect.redhat.com/<projectid>/<product>-operator
+          ...
+----
+
+The operator will need certain privileges to access the resources it will manage. Update the `rbac.yaml` file to reflect the API group being monitored, in this case `<vendor>.com`:
+
+----
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: helm-app-operator
+rules:
+- apiGroups:
+  - <vendor>.com
+  resources:
+  - "*"
+  verbs:
+  - "*"
+...
+----
+
+Next, login to your minishift cluster as `system:admin`:
+
+ $ oc login -u system:admin
+
+Once logged into minishift, create a new namespace for the operator:
+
+ $ oc new-project <product>-operator
+
+Create an image pull secret for the RHC scan registry, which was created by `podman`:
+
+ $ oc create secret generic rhcc \
+ --from-file=.dockerconfigjson=${XDG_RUNTIME_DIR}/containers/auth.json \
+ --type=kubernetes.io/dockerconfigjson
+
+Link your image pull secret to the `default` service account for the namespace:
+
+ $ oc secrets link default rhcc --for=pull
+
+Register your Custom Resource Definition with the cluster, and deploy the remaining K8s resources used for the operator:
+
+ $ oc create -f ./helm-app-operator/deploy/crd.yaml
+ $ oc create -f ./helm-app-operator/deploy/rbac.yaml
+ $ oc create -f ./helm-app-operator/deploy/operator.yaml
+
+Edit `./helm-app-operator/deploy/cr.yaml`, substituting for the `<tagged>` items:
+
+----
+apiVersion: <vendor>.com/v1alpha1
+kind: <Product>
+metadata:
+  name: my-<product>
+  labels:
+    app: <product>
+spec:
+  replicaCount: 2
+----
+
+Deploy the Custom Resource:
+
+ $ oc create -f ./helm-app-operator/deploy/cr.yaml
+
+Watch the Operator deploy your pods (`CTRL+C` to exit):
+
+ $ oc get pods -w
+
