@@ -22,16 +22,28 @@ Change into the repo directory:
 
  $ cd helm-app-operator-kit/
 
-Update the Dockerfile to build using `rhel-atomic` instead of alpine (required for RHCC):
-
- $ sed -i ./Dockerfile -e 's,alpine:3\.6,registry\.access\.redhat\.com/rhel\-atomic,'
-
-Check the Dockerfile contents:
+Edit the Dockerfile for the Helm App Operator, and replace its contents with the following:
 
 ----
-...
+FROM golang:1.10 as builder
+ARG HELM_CHART
+ARG API_VERSION
+ARG KIND
+WORKDIR /go/src/github.com/operator-framework/helm-app-operator-kit/helm-app-operator
+COPY helm-app-operator .
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+RUN dep ensure -v
+RUN CGO_ENABLED=0 GOOS=linux go build -o bin/operator cmd/helm-app-operator/main.go
+RUN chmod +x bin/operator
 
 FROM registry.access.redhat.com/rhel-atomic
+LABEL name="Tomcat-Operator" \
+      maintainer="connect-tech@redhat.com" \
+      vendor="RHC" \
+      version="0.1.0" \
+      release="alpha1" \
+      summary="Tomcat Operator Example" \
+      description="Example Helm App Operator using Apache Tomcat"
 ARG HELM_CHART
 ARG API_VERSION
 ARG KIND
@@ -40,6 +52,7 @@ ENV KIND $KIND
 WORKDIR /
 COPY --from=builder \
 /go/src/github.com/operator-framework/helm-app-operator-kit/helm-app-operator/bin/operator /operator
+COPY LICENSE /licenses/
 ADD $HELM_CHART /chart.tgz
 RUN INSTALL_PKGS="tar gzip" && \
 	microdnf --enablerepo=rhel-7-server-rpms install --nodocs ${INSTALL_PKGS} && \
@@ -49,61 +62,77 @@ RUN INSTALL_PKGS="tar gzip" && \
 ENV HELM_CHART /chart
 ----
 
-Build the operator image from the included `Dockerfile` using `buildah`, substituting your quay.io info, Helm chart tarball, API Version and Kind:
+NOTE: The above example `Dockerfile` contains all the necessary tidbits to pass the RHC container image scan, notably the required `rhel` base image, `LABELs` and `licenses/` directory.
 
- $ buildah bud -t scan.connect.redhat.com/<project_id>/operator-test:0.1.0 --build-arg HELM_CHART=https://storage.googleapis.com/kubernetes-charts/tomcat-0.1.0.tgz   --build-arg API_VERSION=apache.org/v1alpha1   --build-arg KIND=Tomcat .
+Configure `buildah` and `podman` by adding the following registries to `/etc/containers/registries.conf` (the `golang` builder image pulls from `docker.io`):
 
+----
+[registries.search]
+registries = ['registry.access.redhat.com', 'scan.connect.redhat.com', 'docker.io']
+----
 
-Login to the Red Hat Connect scanning registry using `podman`:
+Build an Apache Tomcat operator image from the modified `Dockerfile` using `buildah`:
 
- $ podman login -u unused -p <rhc_registry_key>
+ $ buildah bud -t apache.org/tomcat-operator:0.1.0 \
+ --build-arg HELM_CHART=https://storage.googleapis.com/kubernetes-charts/tomcat-0.1.0.tgz \
+ --build-arg API_VERSION=apache.org/v1alpha1 --build-arg KIND=Tomcat ./
 
-Push your image to the scanning registry:
+Login to the Red Hat Connect scanning registry using `podman` (the password is your project's registry key in Red Hat Connect):
 
- $ buildah push localhost/<vendor>/<product>-operator:0.1.0 \
- scan.connect.redhat.com/<projectid>/<product>-operator:0.1.0
+ $ podman login -u unused scan.connect.redhat.com
 
-Edit `./helm-app-operator/deploy/crd.yaml`, replacing each `<tagged>` value to match:
+Push the Tomcat Operator image from your local `buildah` cache to the RHC scanning registry, substituting your Red Hat Connect Project ID:
+
+ $ buildah push localhost/apache.org/tomcat-operator:0.1.0 \
+ scan.connect.redhat.com/<projectid>/tomcat-operator:0.1.0
+
+Edit the Custom Resource Definition file at `./helm-app-operator/deploy/crd.yaml`, replacing its contents with the following:
 
 ----
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: <product>s.<vendor>.com
+  name: tomcats.apache.org
 spec:
-  group: <vendor>.com
+  group: apache.org
   names:
-    kind: <Product>
-    listKind: <Product>List
-    plural: <product>s
-    singular: <product>
+    kind: Tomcat
+    listKind: TomcatList
+    plural: tomcats
+    singular: tomcat
   scope: Namespaced
   version: v1alpha1
 ----
 
-Edit `./helm-app-operator/deploy/operator.yaml`, substituting as required:
+Edit the Operator Deployment file at `./helm-app-operator/deploy/operator.yaml`, replacing its contents with the following (don't forget to substitute your RHC Project ID):
 
 ----
-...
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: <product>-operator
+  name: tomcat-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: <product>-operator
+      name: tomcat-operator
   template:
     metadata:
       labels:
-        name: <product>-operator
+        name: tomcat-operator
     spec:
       containers:
-        - name: <product>-operator
-          image: scan.connect.redhat.com/<projectid>/<product>-operator
-          ...
+        - name: tomcat-operator
+          image: scan.connect.redhat.com/<projectid>/tomcat-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 ----
 
-The operator will need certain privileges to access the resources it will manage. Update the `rbac.yaml` file to reflect the API group being monitored, in this case `<vendor>.com`:
+The operator will need certain privileges to access the resources it will manage. Replace the contents of `./helm-app-operator/deploy/rbac.yaml` in order to reflect the API group being monitored:
 
 ----
 kind: Role
@@ -117,7 +146,41 @@ rules:
   - "*"
   verbs:
   - "*"
-...
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - "*"
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - "*"
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: default-account-helm-app-operator
+subjects:
+- kind: ServiceAccount
+  name: default
+roleRef:
+  kind: Role
+  name: helm-app-operator
+  apiGroup: rbac.authorization.k8s.io
 ----
 
 Next, login to your minishift cluster as `system:admin`:
@@ -126,7 +189,7 @@ Next, login to your minishift cluster as `system:admin`:
 
 Once logged into minishift, create a new namespace for the operator:
 
- $ oc new-project <product>-operator
+ $ oc new-project tomcat-operator
 
 Create an image pull secret for the RHC scan registry, which was created by `podman`:
 
@@ -144,24 +207,28 @@ Register your Custom Resource Definition with the cluster, and deploy the remain
  $ oc create -f ./helm-app-operator/deploy/rbac.yaml
  $ oc create -f ./helm-app-operator/deploy/operator.yaml
 
-Edit `./helm-app-operator/deploy/cr.yaml`, substituting for the `<tagged>` items:
+Edit the Custom Resource file at `./helm-app-operator/deploy/cr.yaml` with the following contents:
 
 ----
-apiVersion: <vendor>.com/v1alpha1
-kind: <Product>
+apiVersion: apache.org/v1alpha1
+kind: Tomcat
 metadata:
-  name: my-<product>
+  name: my-tomcat
   labels:
-    app: <product>
+    app: tomcat
 spec:
   replicaCount: 2
 ----
 
-Deploy the Custom Resource:
+Deploy the Custom Resource file:
 
  $ oc create -f ./helm-app-operator/deploy/cr.yaml
 
 Watch the Operator deploy your pods (`CTRL+C` to exit):
 
  $ oc get pods -w
+
+You can check the log output of the `tomcat-operator` with the following command (substitute with the name of your `tomcat-operator` pod):
+
+ $ oc logs tomcat-operator-ex4mp13id-abcde
 

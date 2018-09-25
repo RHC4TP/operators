@@ -41,43 +41,18 @@ Start/enable the `libvirtd` service:
 ----
 
 === Download and Install Minishift
-Download the archive for your operating system from the https://github.com/minishift/minishift/releases[Minishift Releases] page, and extract the contents.
+Download the archive for your operating system from the https://github.com/minishift/minishift/releases[Minishift Releases] page:
 
-Copy the minishift binary into your preferred location (eg: `$HOME/bin` or `/usr/local/bin`).
+ $ curl -LO https://github.com/minishift/minishift/releases/download/v1.24.0/minishift-1.24.0-linux-amd64.tgz
 
-Add the `minishift` binary to your `PATH` environment variable (not necessary if using the above suggested locations).
+Extract the minishift archive into your preferred location (eg: `$HOME/bin` or `/usr/local/bin`):
 
-=== Enable the OC Client:
-The `oc` binary is located in the `~/.minishift/cache/oc/v3.10.0` directory, assuming you are using Minishift's default version of OpenShift. You can enable the client using one of two methods:
+ # tar -xzvf minishift-1.24.0-linux-amd64.tgz --strip-components=1 -C /usr/local/bin */minishift
 
-* Copy the oc binary from the path above into your user's `$HOME/bin` directory:
-
- $ cp ~/.minishift/cache/oc/v3.10.0/linux/oc $HOME/bin/oc
-
-* Or copy the binary into `/usr/local/bin` to make it globally available:
-
- $ cp ~/.minishift/cache/oc/v3.10.0/linux/oc $HOME/bin/oc
-
-The `minishift oc-env` command prints the absolute path of Minishift's `oc` binary. You can embed this command in an `eval` statement which will update your `$PATH` to include the path to the `oc` binary:
-
- $ eval $(minishift oc-env)
-
-Test the `oc` command:
-
- $ oc version
-
-Regardless of the chosen method, the following command will create a symlink to the `oc` binary named `kubectl`. This is for drop-in compatibility with upstream k8s commands:
-
- $ ln -s $(which oc) $(dirname $(which oc))/kubectl
-
-NOTE: You'll need root permissions to create the symlink if you installed `oc` to `/usr/local/bin`
-
-Test the `kubectl` command:
-
- $ kubectl version
+Add the `minishift` binary to your `PATH` environment variable (not necessary if using one of the above suggested locations).
 
 === Launch Minishift
-Run the `minishift start` command:
+Run the `minishift start` command, which will run `minishift` with the default VM settings:
 
 ----
 $ minishift start
@@ -101,3 +76,28 @@ You are logged in as:
 To login as administrator:
     oc login -u system:admin
 ----
+
+=== Enable the OpenShift Client and Kubectl:
+
+The `minishift oc-env` command prints the absolute path of Minishift's `oc` binary. You can embed this command in an `eval` statement which will update your shell's `$PATH` environment variable to include the path to the `oc` binary:
+
+ $ eval $(minishift oc-env)
+
+Test the `oc` command:
+
+ $ oc version
+
+You can enable the `oc` binary system wide by running the following command (you must run the previous command first):
+
+ $ sudo cp $(which oc) /usr/local/bin/
+
+You use a symbolic link to the `oc` binary in order for it to double as the `kubectl` command:
+
+ # ln -s /usr/local/bin/{oc,kubectl}
+
+NOTE: You'll need root permissions to create the symlink in `/usr/local/bin`
+
+Test the `kubectl` command:
+
+ $ kubectl version
+
