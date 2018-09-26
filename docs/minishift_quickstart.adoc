@@ -91,7 +91,7 @@ You can enable the `oc` binary system wide by running the following command (you
 
  $ sudo cp $(which oc) /usr/local/bin/
 
-You use a symbolic link to the `oc` binary in order for it to double as the `kubectl` command:
+Use a symbolic link to the `oc` binary which will cause it to double as the `kubectl` command:
 
  # ln -s /usr/local/bin/{oc,kubectl}
 
