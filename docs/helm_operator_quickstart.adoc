@@ -141,7 +141,7 @@ metadata:
   name: helm-app-operator
 rules:
 - apiGroups:
-  - <vendor>.com
+  - apache.org
   resources:
   - "*"
   verbs:
