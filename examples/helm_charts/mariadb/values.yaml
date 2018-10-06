@@ -1,0 +1,23 @@
+image:
+  registry: registry.access.redhat.com
+  repository: rhscl/mariadb-102-rhel7
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  # Change the type to NodePort if using Minishift/Minikube
+  type: ClusterIP
+  port: 3306
+  # Ucomment the section below if using Minishift/Minikube
+  #nodePort: 
+  #  master: 30001
+
+rootUser:
+  password: s3cur3r00tP4ssw0rd
+  forcePassword: false
+
+db:
+  user: testusr
+  password: s3cur3P4ssw0rdStr!ng
+  name: my_database
+  forcePassword: false

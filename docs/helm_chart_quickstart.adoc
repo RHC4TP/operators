@@ -1,0 +1,198 @@
+== Helm Chart Authoring Quickstart
+In this guide, we'll create a basic Helm Chart for an example application (MariaDB). We've used the Tomcat Helm Chart in other examples/guides, so to show some variation we've authored a very simplified example for MariaDB in order to demonstrate. You can find the actual Helm charts for Tomcat, MariaDB and a plethora of other apps (in human-readable text format) at https://github.com/helm/charts. You'll need to installthe Helm client (see https://docs.helm.sh/using_helm/#installing-helm) in order to test out your chart, and also Tiller (the server component of Helm) onto your Kubernetes or OpenShift cluster if you aren't deploying your chart using an Operator.
+
+We will start by creating a `mariadb` directory to house the chart's various files/folders, and changing to that directory:
+
+----
+$ mkdir mariadb
+$ cd mariadb/
+----
+
+We continue by creating the metadata or descriptive data file for the chart itself. Create a file named `Charts.yaml` in an editor, with the following contents:
+
+----
+apiVersion: v1
+name: mariadb
+description: A minimal chart to deploy a MariaDB database for testing.
+version: 0.1.0
+appVersion: 10.2
+----
+
+With that minimal set of descriptive fields (only 3 of which are required: `apiVersion`, `name` and `version`), we can move on with defining `values.yaml`:
+
+----
+image:
+  registry: registry.access.redhat.com
+  repository: rhscl/mariadb-102-rhel7
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  # Change the type to NodePort if using  Minishift or Minikube
+  type: ClusterIP
+  port: 3306
+  # Uncomment the section below if using Minishift or Minikube
+  #nodePort:
+  #  master: 30001
+
+rootUser:
+  password:
+  forcePassword: false
+
+db:
+  user:
+  password:
+  name: my_database
+  forcePassword: false
+----
+
+NOTE: You'll need to set passwords for both the `rootUser` and `db` sections in the `values.yaml` file above, and follow the commented instructions if using a Minishift or Minikube environment
+
+In the above `values.yaml` example, we've defined several arbitrary key/value pairs, the values of which will be pluged into K8s manifest templates later on. If you notice that string values aren't encapsulated in quotes (neither `'` nor `"`), that's because the values get quoted when being referenced in the templates. Next, create the a `templates/` folder which will house these manifest templates:
+
+----
+$ mkdir templates/
+$ cd templates/
+----
+
+Next, we'll start by defining a Kubernetes Deployment template. Create a new file name `mariadb-deployment.yaml` with the following contents:
+
+----
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: {{ template "mariadb.fullname" . }}
+  labels:
+    app: "{{ template "mariadb.name" . }}"
+    chart: {{ template "mariadb.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Server | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: "{{ .Release.Name }}"
+      app: {{ template "mariadb.name" . }}
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: "{{ template "mariadb.name" . }}"
+        release: "{{ .Release.Name }}"
+        chart: {{ template "mariadb.chart" . }}
+    spec:
+      securityContext:
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: "mariadb"
+        image: {{ template "mariadb.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          value: {{ .Values.rootUser.password | quote }}
+        - name: MARIADB_USER
+          value: "{{ .Values.db.user }}"
+        - name: MARIADB_PASSWORD
+          value: "{{ .Values.db.password }}"
+        - name: MARIADB_NAME
+          value: "{{ .Values.db.name }}"
+        ports:
+        - name: mysql
+          containerPort: 3306
+        livenessProbe:
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 3306
+          timeoutSeconds: 1
+        readinessProbe:
+          exec:
+            command: ["sh", "-c", "exec mysql -h 127.0.0.1 -u $MARIADB_USER -D $MARIADB_DATABASE -p $MARIADB_PASSWORD" -e 'SELECT 1'"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: "512Mi"
+        volumeMounts:
+        - name: "{{ template "mariadb.name" . }}-data"
+          mountPath: "/var/lib/mysql/data"
+      volumes:
+        - name: "{{ template "mariadb.name" . }}-data"
+          emptyDir: {}
+----
+
+In review of the above Deployment template, you'll notice that the Go templating engine uses `{{   }}` to denote templated values. This syntax is essentially identical to the Jinja2 templating engine supported in Python and Ansible. It's hopefully clear that we're substituting values for container environment variables like `MARIADB_PASSWORD` with what we've previously defined in `values.yaml` (the contents of which are referenced using dot notation, eg: `.Values.db.password`). What's unclear, however are references such as `.Release.Name` which is used to look up hard-coded info about Helm, and also references such as `mariadb.name` which is a value that we'll define in the next step. You may wonder why `mariadb.name` is the only above templated field that is quoted (eg: `"{{...}}"`), and the reason is that it's the only string value that doesn't get quoted as a result of the next step.
+
+Let's go ahead and create a file name `_helpers.tpl` with the following contents:
+
+----
+{{/* vim: set filetype=mustache: */}}
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "mariadb.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "mariadb.fullname" -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "mariadb.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Return the proper image name
+*/}}
+{{- define "mariadb.image" -}}
+{{- $registryName :=  .Values.image.registry -}}
+{{- $repositoryName := .Values.image.repository -}}
+{{- $tag := .Values.image.tag | toString -}}
+{{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+{{- end -}}
+----
+
+Reviewing the above `_helpers.tpl` file, you'll see that it's a slightly varied form of template (in a format known as mustache). This file, and any other files in `templates/` that begin with an underscore, will not get rendered to a K8s manifest by Helm. It is therefore a stand-alone file, the contents of which can be referenced from any other file within the `templates/` directory. It is in this `_helpers.tpl` file where we satisfy the `mariadb.name`, `mariadb.fullname`, `mariadb.chart` and `mariadb.image` fields referenced in `mariadb-deployment.yaml`. To populate these fields, we are referencing fields from `Chart.yaml` (`.Chart.fieldname`), `values.yaml` (`.Values.fieldname`), and Helm release info (`.Release.fieldname`). The data is then formatted/translated by piping the data into other commands supported by the Go templating engine. The field values all get quoted by `printf` statements except for `mariadb.name`, which is why we quoted it separately in `mariadb-deployment.yaml`. In K8s yaml manifests, all string values must be quoted.
+
+Although all the templated variables have been defined/satisfied for the `mariadb-deployment.yaml` file, there are still some fields in the `values.yaml` file which are intended to populate a K8s Service template. Create a file named `mariadb-service.yaml` file in an editor, and paste in the following contents:
+
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "mariadb.fullname" . }}
+  labels:
+    app: "{{ template "mariadb.name" . }}"
+    chart: {{ template "mariadb.chart" . }}
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if eq .Values.service.type "ClusterIP" }}
+  {{- if .Values.service.clusterIp }}
+  clusterIP: {{ .Values.service.clusterIp }}
+  {{- end }}
+  {{- end }}
+  ports:
+  - name: mysql
+    port: {{ .Values.service.port }}
+    targetPort: mysql
+{{- if eq .Values.service.type "NodePort" }}
+{{- if .Values.service.nodePort }}
+{{- if .Values.service.nodePort.master }}
+    nodePort: {{ .Values.service.nodePort.master }}
+{{- end }}
+{{- end }}
+{{- end }}
+  selector:
+    app: "{{ template "mariadb.name" . }}"
+    component: "master"
+    release: "{{ .Release.Name }}"
+----
