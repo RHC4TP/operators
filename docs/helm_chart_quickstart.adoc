@@ -58,7 +58,7 @@ $ cd templates/
 Next, we'll start by defining a Kubernetes Deployment template. Create a new file name `mariadb-deployment.yaml` with the following contents:
 
 ----
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "mariadb.fullname" . }}
@@ -90,13 +90,13 @@ spec:
         image: {{ template "mariadb.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         env:
-        - name: MARIADB_ROOT_PASSWORD
+        - name: MYSQL_ROOT_PASSWORD
           value: {{ .Values.rootUser.password | quote }}
-        - name: MARIADB_USER
+        - name: MYSQL_USER
           value: "{{ .Values.db.user }}"
-        - name: MARIADB_PASSWORD
+        - name: MYSQL_PASSWORD
           value: "{{ .Values.db.password }}"
-        - name: MARIADB_NAME
+        - name: MYSQL_NAME
           value: "{{ .Values.db.name }}"
         ports:
         - name: mysql
@@ -108,7 +108,7 @@ spec:
           timeoutSeconds: 1
         readinessProbe:
           exec:
-            command: ["sh", "-c", "exec mysql -h 127.0.0.1 -u $MARIADB_USER -D $MARIADB_DATABASE -p $MARIADB_PASSWORD" -e 'SELECT 1'"]
+            command: ["sh", "-c", "exec mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p $MYSQL_PASSWORD -e 'SELECT 1'"]
           initialDelaySeconds: 5
           timeoutSeconds: 1
         resources:
@@ -122,7 +122,7 @@ spec:
           emptyDir: {}
 ----
 
-In review of the above Deployment template, you'll notice that the Go templating engine uses `{{   }}` to denote templated values. This syntax is essentially identical to the Jinja2 templating engine supported in Python and Ansible. It's hopefully clear that we're substituting values for container environment variables like `MARIADB_PASSWORD` with what we've previously defined in `values.yaml` (the contents of which are referenced using dot notation, eg: `.Values.db.password`). What's unclear, however are references such as `.Release.Name` which is used to look up hard-coded info about Helm, and also references such as `mariadb.name` which is a value that we'll define in the next step. You may wonder why `mariadb.name` is the only above templated field that is quoted (eg: `"{{...}}"`), and the reason is that it's the only string value that doesn't get quoted as a result of the next step.
+In review of the above Deployment template, you'll notice that the Go templating engine uses `{{   }}` to denote templated values. This syntax is essentially identical to the Jinja2 templating engine supported in Python and Ansible. It's hopefully clear that we're substituting values for container environment variables like `MYSQL_PASSWORD` with what we've previously defined in `values.yaml` (the contents of which are referenced using dot notation, eg: `.Values.db.password`). What's unclear, however are references such as `.Release.Name` which is used to look up hard-coded info about Helm, and also references such as `mariadb.name` which is a value that we'll define in the next step. You may wonder why `mariadb.name` is the only above templated field that is quoted (eg: `"{{...}}"`), and the reason is that it's the only string value that doesn't get quoted as a result of the next step.
 
 Let's go ahead and create a file name `_helpers.tpl` with the following contents:
 
@@ -196,3 +196,14 @@ spec:
     component: "master"
     release: "{{ .Release.Name }}"
 ----
+
+Once you've saved the `mariadb-service.yaml` file, you've completed the Helm Chart for MariaDB. You can generate Kubernetes manifests from the chart by using the `helm template` command, which will print the resulting manifests onto the standard output. We can create the reulting resources in Minishift by piping the output into the `oc create` command. You'll first need to change into the parent directory of the helm chart, and also create a new project (namespace) to house the MariaDB resources:
+
+ cd ../../
+ oc new-project mariadb-test
+
+Once that's done, create the resources in Minishift:
+
+ helm template mariadb | oc create -f -
+
+You should now see the resources launching in Minishift. Once the MariaDB pod has connected, you can either connect to the MariaDB instance locally from within the container (using `oc rsh <pod-identifier>`) or connect to the `NodePort` associated with the MariaDB service that was created (eg: `mysql -u root --password -h <minishift-ip-adress>:<NodePort>`).
