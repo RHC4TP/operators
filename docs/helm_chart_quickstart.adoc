@@ -202,6 +202,10 @@ Once you've saved the `mariadb-service.yaml` file, you've completed the Helm Cha
  $ cd ../../
  $ oc new-project mariadb-test
 
+Since MariaDB runs with a fixed UID (as specified in `mariadb-deployment.yaml`), you must grant the proper security context constraint of `anyuid` to the `default` service account in the newly created namespace (you will need to be logged in as `system:admin` in your cluster):
+
+ $ oc adm policy add-scc-to-user anyuid -z default
+
 Once that's done, create the resources in Minishift (we give a `.Release.Name` to avoid the default value of `RELEASE-NAME` which breaks the manifest):
 
  $ helm template -n test-release mariadb | oc create -f -
