@@ -202,8 +202,8 @@ Once you've saved the `mariadb-service.yaml` file, you've completed the Helm Cha
  $ cd ../../
  $ oc new-project mariadb-test
 
-Once that's done, create the resources in Minishift:
+Once that's done, create the resources in Minishift (we give a `.Release.Name` to avoid the default value of `RELEASE-NAME` which breaks the manifest):
 
- $ helm template mariadb | oc create -f -
+ $ helm template -n test-release mariadb | oc create -f -
 
 You should now see the resources launching in Minishift. Once the MariaDB pod has connected, you can either connect to the MariaDB instance locally from within the container (using `oc rsh <pod-identifier>`) or connect to the `NodePort` associated with the MariaDB service that was created (eg: `mysql -u root --password -h <minishift-ip-adress>:<NodePort>`).
