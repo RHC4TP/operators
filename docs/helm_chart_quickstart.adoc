@@ -199,11 +199,11 @@ spec:
 
 Once you've saved the `mariadb-service.yaml` file, you've completed the Helm Chart for MariaDB. You can generate Kubernetes manifests from the chart by using the `helm template` command, which will print the resulting manifests onto the standard output. We can create the reulting resources in Minishift by piping the output into the `oc create` command. You'll first need to change into the parent directory of the helm chart, and also create a new project (namespace) to house the MariaDB resources:
 
- cd ../../
- oc new-project mariadb-test
+ $ cd ../../
+ $ oc new-project mariadb-test
 
 Once that's done, create the resources in Minishift:
 
- helm template mariadb | oc create -f -
+ $ helm template mariadb | oc create -f -
 
 You should now see the resources launching in Minishift. Once the MariaDB pod has connected, you can either connect to the MariaDB instance locally from within the container (using `oc rsh <pod-identifier>`) or connect to the `NodePort` associated with the MariaDB service that was created (eg: `mysql -u root --password -h <minishift-ip-adress>:<NodePort>`).
