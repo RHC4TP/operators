@@ -60,6 +60,8 @@ RUN INSTALL_PKGS="tar gzip" && \
 	rm /chart.tgz && \
 	microdnf remove ${INSTALL_PKGS}
 ENV HELM_CHART /chart
+
+CMD ["/operator"]
 ----
 
 NOTE: The above example `Dockerfile` contains all the necessary tidbits to pass the RHC container image scan, notably the required `rhel` base image, `LABELs` and `licenses/` directory.
