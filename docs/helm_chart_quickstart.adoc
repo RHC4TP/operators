@@ -1,14 +1,23 @@
 == Helm Chart Authoring Quickstart
-In this guide, we'll create a basic Helm Chart for an example application (MariaDB). We've used the Tomcat Helm Chart in other examples/guides, so to show some variation we've authored a very simplified example for MariaDB in order to demonstrate. You can find the actual Helm charts for Tomcat, MariaDB and a plethora of other apps (in human-readable text format) at https://github.com/helm/charts. You'll need to install the Helm client (see https://docs.helm.sh/using_helm/#installing-helm) in order to test out your chart, and also Tiller (the server component of Helm) onto your Kubernetes or OpenShift cluster if you aren't deploying your chart using an Operator.
+In this guide, we'll create a basic Helm Chart for an example application (MariaDB). We've used the Tomcat Helm Chart as an example previously, so to show some variation we've authored a rather simplified example for MariaDB in order to demonstrate. You can find the actual Helm charts for Tomcat, MariaDB and a plethora of other apps (in human-readable text format) at https://github.com/helm/charts. 
 
-We will start by creating a `mariadb` directory to house the chart's various files/folders, and changing to that directory:
+First, you must install the Helm client if you haven't already. Download the latest Helm archive and extract the binary somewhere within your shell's `$PATH`:
+
+----
+# curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-arm64.tar.gz
+# tar -xzvf helm-v2.11.0-linux-arm64.tar.gz -C /usr/local/bin/ --strip-components=1 */helm
+----
+
+NOTE: You'll need root permissions to install the `helm` binary into `/usr/local/bin` on your system
+
+Once helm is installed, create a `mariadb` directory to house the chart's various files/folders, and change to that directory:
 
 ----
 $ mkdir mariadb
 $ cd mariadb/
 ----
 
-We continue by creating the metadata or descriptive data file for the chart itself. Create a file named `Chart.yaml` in an editor, with the following contents:
+Continue with creating the metadata or descriptive data file for the chart. Create a file named `Chart.yaml` in an editor, with the following contents:
 
 ----
 apiVersion: v1
@@ -26,29 +35,35 @@ image:
   repository: rhscl/mariadb-102-rhel7
   tag: latest
   pullPolicy: IfNotPresent
-
-service:
-  # Change the type to NodePort if using  Minishift or Minikube
-  type: ClusterIP
-  port: 3306
-  # Uncomment the section below if using Minishift or Minikube
-  #nodePort:
-  #  master: 30001
-
-rootUser:
-  password:
-  forcePassword: false
-
 db:
-  user:
+  user: sampleusr
   password:
-  name: my_database
-  forcePassword: false
+  name: sampledb
+  rootPassword:
+  config: |-
+    [mysqld]
+    datadir=/var/lib/mysql/data
+    basedir=/opt/rh/rh-mariadb102/root/usr
+    plugin-dir=/opt/rh/rh-mariadb102/root/usr/lib64/mysql/plugin
+    port=3306
+    bind-address=0.0.0.0
+    max_allowed_packet=16M
+    symbolic-links=0
+    skip_name_resolve
+    ignore-db-dir=lost+found
+    character-set-server=UTF8
+    collation-server=utf8_general_ci
+    general_log=0
+    general_log_file=/var/lib/mysql/data/mysql-query.log
+
+    [client]
+    port=3306
+    default-character-set=UTF8
 ----
 
-NOTE: You'll need to set passwords for both the `rootUser` and `db` sections in the `values.yaml` file above, and follow the commented instructions if using a Minishift or Minikube environment
+NOTE: You'll need to set values for both the `password` and `rootPassword` fields in the `values.yaml` file above
 
-In the above `values.yaml` example, we've defined several arbitrary key/value pairs, the values of which will be pluged into K8s manifest templates later on. If you notice that string values aren't encapsulated in quotes (neither `'` nor `"`), that's because the values get quoted when being referenced in the templates. Next, create the a `templates/` folder which will house these manifest templates:
+In the above `values.yaml` example, we've defined several key/value pairs, the values of which will be plugged into K8s manifest templates later on. If you noticed that string values aren't quoted, it's because that will occur later when we define the templates. We also define a custom `my.cnf` file above in order to bind MariaDB to the IP address `0.0.0.0`, meaning all addresses in the container. Next, create the `templates/` folder which will house these manifest templates:
 
 ----
 $ mkdir templates/
@@ -91,12 +106,12 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.rootUser.password | quote }}
+          value: {{ .Values.db.rootPassword | quote }}
         - name: MYSQL_USER
           value: "{{ .Values.db.user }}"
         - name: MYSQL_PASSWORD
           value: "{{ .Values.db.password }}"
-        - name: MYSQL_NAME
+        - name: MYSQL_DATABASE
           value: "{{ .Values.db.name }}"
         ports:
         - name: mysql
@@ -108,7 +123,7 @@ spec:
           timeoutSeconds: 1
         readinessProbe:
           exec:
-            command: ["sh", "-c", "exec mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p $MYSQL_PASSWORD -e 'SELECT 1'"]
+            command: ["sh", "-c", "exec $MYSQL_PREFIX/bin/mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD -e 'SELECT 1'"]
           initialDelaySeconds: 5
           timeoutSeconds: 1
         resources:
@@ -117,12 +132,22 @@ spec:
         volumeMounts:
         - name: "{{ template "mariadb.name" . }}-data"
           mountPath: "/var/lib/mysql/data"
+        {{- if .Values.db.config }}
+        - name: config
+          mountPath: /etc/opt/rh/rh-mariadb102/my.cnf
+          subPath: my.cnf
+        {{- end }}
       volumes:
-        - name: "{{ template "mariadb.name" . }}-data"
-          emptyDir: {}
+      - name: "{{ template "mariadb.name" . }}-data"
+        emptyDir: {}
+      {{- if .Values.db.config }}
+      - name: config
+        configMap:
+          name: {{ template "mariadb.fullname" . }}
+      {{- end}}
 ----
 
-In review of the above Deployment template, you'll notice that the Go templating engine uses `{{   }}` to denote templated values. This syntax is essentially identical to the Jinja2 templating engine supported in Python and Ansible. It's hopefully clear that we're substituting values for container environment variables like `MYSQL_PASSWORD` with what we've previously defined in `values.yaml` (the contents of which are referenced using dot notation, eg: `.Values.db.password`). What's unclear, however are references such as `.Release.Name` which is used to look up hard-coded info about Helm, and also references such as `mariadb.name` which is a value that we'll define in the next step. You may wonder why `mariadb.name` is the only above templated field that is quoted (eg: `"{{...}}"`), and the reason is that it's the only string value that doesn't get quoted as a result of the next step.
+In review of the above Deployment template, you'll notice that the Go templating engine uses `{{   }}` to denote templated values. This syntax is essentially identical to the Jinja2 templating engine supported in Python and Ansible. It's hopefully clear that we're substituting values for container environment variables like `MYSQL_PASSWORD` with what was defined in `values.yaml`, where those fields are referenced using dot notation (eg: `.Values.db.password`). What's definitely unclear are references such as `.Release.Name` which is used to look up hard-coded info about Helm. What's also unclear are fields such as `mariadb.name` which we'll define in the next step. You may wonder why `mariadb.name` is the only above templated field that is quoted (eg: `"{{...}}"`), and we'll explain that next. The last thing to note at the end of the file is how we've defined conditional yaml blocks, which only get included in the generated K8s manifest if the `.Values.db.config` field is populated.
 
 Let's go ahead and create a file name `_helpers.tpl` with the following contents:
 
@@ -159,55 +184,61 @@ Return the proper image name
 {{- end -}}
 ----
 
-Reviewing the above `_helpers.tpl` file, you'll see that it's a slightly varied form of template (in a format known as mustache). This file, and any other files in `templates/` that begin with an underscore, will not get rendered to a K8s manifest by Helm. It is therefore a stand-alone file, the contents of which can be referenced from any other file within the `templates/` directory. It is in this `_helpers.tpl` file where we satisfy the `mariadb.name`, `mariadb.fullname`, `mariadb.chart` and `mariadb.image` fields referenced in `mariadb-deployment.yaml`. To populate these fields, we are referencing fields from `Chart.yaml` (`.Chart.fieldname`), `values.yaml` (`.Values.fieldname`), and Helm release info (`.Release.fieldname`). The data is then formatted/translated by piping the data into other commands supported by the Go templating engine. The field values all get quoted by `printf` statements except for `mariadb.name`, which is why we quoted it separately in `mariadb-deployment.yaml`. In K8s yaml manifests, all string values must be quoted.
+Reviewing the above `_helpers.tpl` file, you'll see that it's a slightly varied form of template (in a format known as mustache). This file, and any other files in `templates/` that begin with an underscore, will not get rendered to a K8s manifest by Helm. It is therefore a stand-alone file, the contents of which can be referenced from any other file within the `templates/` directory. It is in this `_helpers.tpl` file where we satisfy the `mariadb.name`, `mariadb.fullname`, `mariadb.chart` and `mariadb.image` fields referenced in `mariadb-deployment.yaml`. To populate these fields, we are referencing fields from `Chart.yaml` (`.Chart.fieldname`), `values.yaml` (`.Values.fieldname`), and Helm release info (`.Release.fieldname`). The data is then formatted/translated by piping the data into other commands supported by the Go templating engine. The field values all get quoted by `printf` statements except for `mariadb.name`, which is why we quoted it separately in `mariadb-deployment.yaml`. In K8s yaml manifests, all string values must be quoted in order to be serialized by the K8s APIs.
 
-Although all the templated variables have been defined/satisfied for the `mariadb-deployment.yaml` file, there are still some fields in the `values.yaml` file which are intended to populate a K8s Service template. Create a file named `mariadb-service.yaml` file in an editor, and paste in the following contents:
+The last template to create is the ConfigMap used to mount the custom `my.cnf` file (listed in `values.yaml`) into the MariaDB container as `/etc/opt/rh/rh-mariadb102/my.cnf`. Create a file named `mariadb-configmap.yaml` with the following contents:
 
 ----
+{{- if .Values.db.config }}
 apiVersion: v1
-kind: Service
+kind: ConfigMap
 metadata:
   name: {{ template "mariadb.fullname" . }}
   labels:
-    app: "{{ template "mariadb.name" . }}"
+    app: {{ template "mariadb.name" . }}
+    component: "master"
     chart: {{ template "mariadb.chart" . }}
     release: {{ .Release.Name | quote }}
     heritage: {{ .Release.Service | quote }}
-spec:
-  type: {{ .Values.service.type }}
-  {{- if eq .Values.service.type "ClusterIP" }}
-  {{- if .Values.service.clusterIp }}
-  clusterIP: {{ .Values.service.clusterIp }}
-  {{- end }}
-  {{- end }}
-  ports:
-  - name: mysql
-    port: {{ .Values.service.port }}
-    targetPort: mysql
-{{- if eq .Values.service.type "NodePort" }}
-{{- if .Values.service.nodePort }}
-{{- if .Values.service.nodePort.master }}
-    nodePort: {{ .Values.service.nodePort.master }}
-{{- end }}
-{{- end }}
-{{- end }}
-  selector:
-    app: "{{ template "mariadb.name" . }}"
-    component: "master"
-    release: "{{ .Release.Name }}"
+data:
+  my.cnf: |-
+{{ .Values.db.config | indent 4 }}
+{{- end -}}
 ----
 
-Once you've saved the `mariadb-service.yaml` file, you've completed the Helm Chart for MariaDB. You can generate Kubernetes manifests from the chart by using the `helm template` command, which will print the resulting manifests onto the standard output. We can create the reulting resources in Minishift by piping the output into the `oc create` command. You'll first need to change into the parent directory of the helm chart, and also create a new project (namespace) to house the MariaDB resources:
+At this point, all of the templated variables have been defined and satisfied for the `mariadb-deployment.yaml` file. You'll first need to change into the parent directory of the helm chart, and also create a new project (namespace) to house the MariaDB resources:
 
- $ cd ../../
- $ oc new-project mariadb-test
+----
+$ cd ../../
+$ oc new-project mariadb-test
+----
 
 Since MariaDB runs with a fixed UID (as specified in `mariadb-deployment.yaml`), you must grant the proper security context constraint of `anyuid` to the `default` service account for the newly created namespace (you will need to be logged in as `system:admin` in your cluster):
 
- $ oc adm policy add-scc-to-user anyuid -z default
+----
+$ oc adm policy add-scc-to-user anyuid -z default
+----
 
-Once that's done, create the resources in Minishift (we give a `.Release.Name` to avoid the default value of `RELEASE-NAME` which breaks the manifest):
+You can generate Kubernetes manifests from the chart by using the `helm template` command and piping the output to the `oc create` command (we also pass in `test` to use as `.Release.Name` to avoid the default value of `RELEASE-NAME` which breaks the K8s manifests):
 
- $ helm template -n test-release mariadb | oc create -f -
+----
+$ helm template -n test mariadb | oc create -f -
+----
 
-You should now see the resources launching in Minishift. Once the MariaDB pod has connected, you can either connect to the MariaDB instance locally from within the container (using `oc rsh <pod-identifier>`) or connect to the `NodePort` associated with the MariaDB service that was created (eg: `mysql -u root --password -h <minishift-ip-adress>:<NodePort>`).
+You should now see the resources launching in Minishift. Once the MariaDB pod has initialized, you can enable connecting to the database from your host system by creating a `LoadBalancer` service:
+
+----
+$ oc expose deployment test-mariadb --type=LoadBalancer --name=mariadb-ingress
+----
+
+You can retrieve the port that was assigned to the service by issuing the following command, referencing the `NodePort` value:
+
+----
+$ oc describe svc mariadb-ingress
+----
+
+In order to connect, you'll need the client portion of MariaDB 10.2, which is available from Red Hat Software Collections. Once obtained, you can connect to the database by issuing the `mysql` command and substituting the `NodePort` :
+
+----
+mysql -h $(minishift ip) --port <NodePort> -u sampleusr -D sampledb --password
+----

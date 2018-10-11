@@ -31,12 +31,12 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.rootUser.password | quote }}
+          value: {{ .Values.db.rootPassword | quote }}
         - name: MYSQL_USER
           value: "{{ .Values.db.user }}"
         - name: MYSQL_PASSWORD
           value: "{{ .Values.db.password }}"
-        - name: MYSQL_NAME
+        - name: MYSQL_DATABASE
           value: "{{ .Values.db.name }}"
         ports:
         - name: mysql
@@ -48,7 +48,7 @@ spec:
           timeoutSeconds: 1
         readinessProbe:
           exec:
-            command: ["sh", "-c", "exec mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p $MYSQL_PASSWORD -e 'SELECT 1'"]
+            command: ["sh", "-c", "exec $MYSQL_PREFIX/bin/mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD -e 'SELECT 1'"]
           initialDelaySeconds: 5
           timeoutSeconds: 1
         resources:
@@ -57,6 +57,16 @@ spec:
         volumeMounts:
         - name: "{{ template "mariadb.name" . }}-data"
           mountPath: "/var/lib/mysql/data"
+        {{- if .Values.db.config }}
+        - name: config
+          mountPath: /etc/opt/rh/rh-mariadb102/my.cnf
+          subPath: my.cnf
+        {{- end }}
       volumes:
-        - name: "{{ template "mariadb.name" . }}-data"
-          emptyDir: {}
+      - name: "{{ template "mariadb.name" . }}-data"
+        emptyDir: {}
+      {{- if .Values.db.config }}
+      - name: config
+        configMap:
+          name: {{ template "mariadb.fullname" . }}
+      {{- end}}

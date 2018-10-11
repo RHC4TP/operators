@@ -4,20 +4,27 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
-service:
-  # Change the type to NodePort if using Minishift/Minikube
-  type: ClusterIP
-  port: 3306
-  # Ucomment the section below if using Minishift/Minikube
-  #nodePort: 
-  #  master: 30001
-
-rootUser:
-  password: s3cur3r00tP4ssw0rd
-  forcePassword: false
-
 db:
-  user: testusr
-  password: s3cur3P4ssw0rdStr!ng
-  name: my_database
-  forcePassword: false
+  user: mysqlusr
+  password: usrpwd
+  name: sampledb
+  rootPassword: rootpwd
+  config: |-
+    [mysqld]
+    datadir=/var/lib/mysql/data
+    basedir=/opt/rh/rh-mariadb102/root/usr
+    plugin-dir=/opt/rh/rh-mariadb102/root/usr/lib64/mysql/plugin
+    port=3306
+    bind-address=0.0.0.0
+    max_allowed_packet=16M
+    symbolic-links=0
+    skip_name_resolve
+    ignore-db-dir=lost+found
+    character-set-server=UTF8
+    collation-server=utf8_general_ci
+    general_log=0
+    general_log_file=/var/lib/mysql/data/mysql-query.log
+
+    [client]
+    port=3306
+    default-character-set=UTF8
