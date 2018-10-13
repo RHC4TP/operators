@@ -16,11 +16,15 @@ This guide is intended to help you build a Helm Operator from an existing Helm c
 
 First, clone the following github repo:
 
- $ git clone https://github.com/operator-framework/helm-app-operator-kit
+----
+$ git clone https://github.com/operator-framework/helm-app-operator-kit
+----
 
 Change into the repo directory:
 
- $ cd helm-app-operator-kit/
+----
+$ cd helm-app-operator-kit/
+----
 
 Edit the Dockerfile for the Helm App Operator, and replace its contents with the following:
 
@@ -53,13 +57,8 @@ WORKDIR /
 COPY --from=builder \
 /go/src/github.com/operator-framework/helm-app-operator-kit/helm-app-operator/bin/operator /operator
 COPY LICENSE /licenses/
-ADD $HELM_CHART /chart.tgz
-RUN INSTALL_PKGS="tar gzip" && \
-	microdnf --enablerepo=rhel-7-server-rpms install --nodocs ${INSTALL_PKGS} && \
-	mkdir /chart && tar xzvf /chart.tgz -C /chart --strip-components=1 && \
-	rm /chart.tgz && \
-	microdnf remove ${INSTALL_PKGS}
-ENV HELM_CHART /chart
+ADD $HELM_CHART /chart
+ENV HELM_CHART /chart/tomcat
 
 CMD ["/operator"]
 ----
@@ -73,20 +72,33 @@ Configure `buildah` and `podman` by adding the following registries to `/etc/con
 registries = ['registry.access.redhat.com', 'scan.connect.redhat.com', 'docker.io']
 ----
 
+Download the Helm Chart for Apache Tomcat into the build root (the current directory where the Dockerfile is located):
+
+----
+curl -LO https://storage.googleapis.com/kubernetes-charts/tomcat-0.1.0.tgz
+----
+
 Build an Apache Tomcat operator image from the modified `Dockerfile` using `buildah`:
 
- $ buildah bud -t apache.org/tomcat-operator:0.1.0 \
- --build-arg HELM_CHART=https://storage.googleapis.com/kubernetes-charts/tomcat-0.1.0.tgz \
- --build-arg API_VERSION=apache.org/v1alpha1 --build-arg KIND=Tomcat ./
+----
+$ buildah bud -t apache.org/tomcat-operator:0.1.0 \
+--build-arg HELM_CHART=tomcat-0.1.0.tgz \
+--build-arg API_VERSION=apache.org/v1alpha1 \
+--build-arg KIND=Tomcat ./
+----
 
 Login to the Red Hat Connect scanning registry using `podman` (the password is your project's registry key in Red Hat Connect):
 
- $ podman login -u unused scan.connect.redhat.com
+----
+$ podman login -u unused scan.connect.redhat.com
+----
 
 Push the Tomcat Operator image from your local `buildah` cache to the RHC scanning registry, substituting your Red Hat Connect Project ID:
 
- $ buildah push localhost/apache.org/tomcat-operator:0.1.0 \
- scan.connect.redhat.com/<projectid>/tomcat-operator:0.1.0
+----
+$ buildah push localhost/apache.org/tomcat-operator:0.1.0 \
+scan.connect.redhat.com/<projectid>/tomcat-operator:0.1.0
+----
 
 Edit the Custom Resource Definition file at `./helm-app-operator/deploy/crd.yaml`, replacing its contents with the following:
 
@@ -158,6 +170,7 @@ rules:
   - events
   - configmaps
   - secrets
+  - namespaces
   verbs:
   - "*"
 - apiGroups:
@@ -187,27 +200,43 @@ roleRef:
 
 Next, login to your minishift cluster as `system:admin`:
 
- $ oc login -u system:admin
+----
+$ oc login -u system:admin
+----
 
 Once logged into minishift, create a new namespace for the operator:
 
- $ oc new-project tomcat-operator
+----
+$ oc new-project tomcat-operator
+----
 
 Create an image pull secret for the RHC scan registry, which was created by `podman`:
 
- $ oc create secret generic rhcc \
- --from-file=.dockerconfigjson=${XDG_RUNTIME_DIR}/containers/auth.json \
- --type=kubernetes.io/dockerconfigjson
+----
+$ oc create secret generic rhcc \
+--from-file=.dockerconfigjson=${XDG_RUNTIME_DIR}/containers/auth.json \
+--type=kubernetes.io/dockerconfigjson
+----
 
 Link your image pull secret to the `default` service account for the namespace:
 
- $ oc secrets link default rhcc --for=pull
+----
+$ oc secrets link default rhcc --for=pull
+----
+
+Tomcat binds to a HostPort, which requires the `hostnetwork` security context constraint added to the `default` service account (otherwise, pods can't even be scheduled):
+
+----
+$ oc adm policy add-scc-to-user hostnetwork -z default
+----
 
 Register your Custom Resource Definition with the cluster, and deploy the remaining K8s resources used for the operator:
 
- $ oc create -f ./helm-app-operator/deploy/crd.yaml
- $ oc create -f ./helm-app-operator/deploy/rbac.yaml
- $ oc create -f ./helm-app-operator/deploy/operator.yaml
+----
+$ oc create -f ./helm-app-operator/deploy/crd.yaml
+$ oc create -f ./helm-app-operator/deploy/rbac.yaml
+$ oc create -f ./helm-app-operator/deploy/operator.yaml
+----
 
 Edit the Custom Resource file at `./helm-app-operator/deploy/cr.yaml` with the following contents:
 
@@ -224,13 +253,19 @@ spec:
 
 Deploy the Custom Resource file:
 
- $ oc create -f ./helm-app-operator/deploy/cr.yaml
+----
+$ oc create -f ./helm-app-operator/deploy/cr.yaml
+----
 
 Watch the Operator deploy your pods (`CTRL+C` to exit):
 
- $ oc get pods -w
+----
+$ oc get pods -w
+----
 
 You can check the log output of the `tomcat-operator` with the following command (substitute with the name of your `tomcat-operator` pod):
 
- $ oc logs tomcat-operator-ex4mp13id-abcde
+----
+$ oc logs tomcat-operator-ex4mp13id-abcde
+----
 
