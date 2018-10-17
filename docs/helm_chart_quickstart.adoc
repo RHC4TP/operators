@@ -4,8 +4,8 @@ In this guide, we'll create a basic Helm Chart for an example application (Maria
 First, you must install the Helm client if you haven't already. Download the latest Helm archive and extract the binary somewhere within your shell's `$PATH`:
 
 ----
-# curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-arm64.tar.gz
-# tar -xzvf helm-v2.11.0-linux-arm64.tar.gz -C /usr/local/bin/ --strip-components=1 */helm
+# curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz
+# tar -xzvf helm-v2.11.0-linux-amd64.tar.gz -C /usr/local/bin/ --strip-components=1 */helm
 ----
 
 NOTE: You'll need root permissions to install the `helm` binary into `/usr/local/bin` on your system
