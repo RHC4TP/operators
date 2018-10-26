@@ -1,0 +1,68 @@
+= Operator Certification Workflow
+ifdef::env-github[]
+:imagesdir:
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+ifndef::env-github[]
+:imagesdir: ./
+endif::[]
+:toc:
+:toc-placement!:
+
+Welcome Red Hat Connect Technology Partners. This guide provides the instructions and resources needed to publish a certified Operator on the https://connect.redhat.com[Connect] web portal.
+
+toc::[]
+
+
+== Step One: Complete Questionnaire and Join SIG
+
+First off, fill out the https://docs.google.com/forms/d/e/1FAIpQLSfEv47Vu_H-j_wQroOMMh0MIn_8lbDcmE_Lpj5YAGiNo0i_8g/viewform[Operator Framework Community Questionnaire]. The Red Hat Partner Connect team will use this to guage your Organization's experience with Operators and curate resources that will be most helpful for you. You will also be added to the Operator Framework community mailing list and special interest group (SIG). 
+
+== Step Two: Publish Container Image in Connect
+
+In order to certify your Operator, you must have a certified Container image published though Red Hat Connect and available on the https://access.redhat.com/containers[Red Hat Container Catalog].
+
+We have an extensive guide that will walk you through certifying a Container image that can be found https://github.com/RHC4TP/documentation/tree/master/Red%20Hat%20OpenShift%20-%20Container%20Zone[here].
+
+== Step Three: Install Openshift Container Platform (OCP) for Testing
+
+Follow this https://docs.openshift.com/container-platform/3.11/getting_started/install_openshift.html[guide] to install and configure OCP on your system. 
+
+You will need a valid Red Hat supscription to install OCP. If you're a new Red Hat Partner, you can request a no cost subscription https://connect.redhat.com/benefits/software-access[here].
+
+== Step Four: Install Operator Framework 
+
+The Operator Framework is an open source toolkit that can be leveraged to manage Operators in an effective, automated, and scalable fashion. You can download the SDK https://github.com/operator-framework/operator-sdk[here].
+
+The project offers many example Operators and guides that will help you during development. 
+        
+== Step Five: Build Operator
+
+The Operator Framework contains several repositories that will cater to your desired Operator development workflow. Depending on the needs of your application, use one of the following for development:
+
+1. https://github.com/operator-framework/operator-sdk[Operator SDK]: The SDK offers a toolset designed to make life easier for those wanting to develop an Operator. It allows users to encode operational knowledge into their Operator by using high level APIs and abstraction. This framework provides all the tools you need to build, test, and package your Operator successfully. The best practices and code patterns necessary for an effective Operator can all be found in the SDK. Implementing the business logic specific to your application is made much simpler.
+
+2. https://github.com/operator-framework/helm-app-operator-kit[Helm App Operator Kit]: Not all applications will need a fully customized Operator to be managed. With the Helm App Operator Kit, you can easily manage stateless applications and deploy them as a single Kubernetes resource. This project serves as a template for doing this, by making use of helm charts. It provides standardized manifest files for your Operator, in the form of YAML. Just modify the pre-existing files with information about your application and deploy.
+
+3. https://github.com/operator-framework/operator-sdk/tree/master/doc/ansible[Ansible based Operator]: The SDK includes the tools needed to power an Operator using Ansible Playbooks and roles. If you are already using Ansible and want to make an Operator, this is the easiest route. The SDK will create a directory template for you to fill out with information about your application. Simply, create a Custom Resource Definition in the YAML format and define the reconciliation to be completed by your Playbook or roles. 
+
+== Step Six: Test Operator
+
+Testing Operators can prove to be a challenging task, reproducing the real world situations an Operator will confront in a clustered environment.
+
+The Operator-SDK offers a https://github.com/operator-framework/operator-sdk/tree/master/test[testing framework] that makes writing tests for your Operator simpler by removing boilerplate code and providing common test utilities. The testing library can be found in `pkg/test`.
+
+An example of creating an end to end test for your Operator, using the testing framework can be found https://github.com/operator-framework/operator-sdk/blob/master/doc/test-framework/writing-e2e-tests.md[here].
+
+== Step Seven: Certify Operator
+
+The operator certification tooling is still under development. It is expected to be available in December 2018. At that point, your Operator will pass though a security scan. If passed, the Operator will be published alongside you Container image in the Red Hat Container Catalog (RHCC).
+
+== Step Eight: Post Certification
+
+Work in progress
+
