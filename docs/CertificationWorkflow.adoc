@@ -1,5 +1,4 @@
 = Operator Certification Workflow
-
 ifdef::env-github[]
 :imagesdir:
 endif::[]
