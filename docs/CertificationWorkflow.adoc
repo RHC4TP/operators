@@ -17,7 +17,7 @@ toc::[]
 
 First off, fill out the https://docs.google.com/forms/d/e/1FAIpQLSfEv47Vu_H-j_wQroOMMh0MIn_8lbDcmE_Lpj5YAGiNo0i_8g/viewform[Operator Framework Community Questionnaire]. The Red Hat Partner Connect team will use this to gauge your Organization's experience with Operators and curate resources that will be most helpful for you. You will also be added to the Operator Framework community mailing list and special interest group (SIG). 
 
-== Step Two: Publish Container Image in Connect
+== Step Two: Publish Container Image in the Red Hat Container Catalog
 
 In order to certify your Operator, you must have a certified container image published though Red Hat Connect and available on the https://access.redhat.com/containers[Red Hat Container Catalog].
 
