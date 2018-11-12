@@ -56,7 +56,15 @@ An example of creating an end to end test for your Operator, using the testing f
 
 == Step Seven: Certify Operator
 
-The operator certification tooling is still under development. It is expected to be available in December 2018. At that time, once the operator has passed the certificaiton scan, it can be published alongside the container image in the Red Hat Container Catalog (RHCC).
+The operator certification tooling is still under development. It is expected to be available in December 2018. At that time, once the operator has passed the certification scan, it can be published alongside the container image in the Red Hat Container Catalog (RHCC).
+
+Until this tooling is released, partners can prepare for certification by: + 
+        +     
+        *1)* Creating a *product* in Red Hat Connect for the operator AND completing https://docs.google.com/forms/d/e/1FAIpQLSczOO7juMCE2KN3aG7C9LK8a3KKIDVRsreebrU4CxGeLSvzhg/viewform?c=0&w=1[export compliance] for this product + 
+        + 
+        *2)* Creating a *project* in the *_Red Hat Openshift & Container_* zone for the operator product + 
+        + 
+This project will be used to upload the operator image once certification tooling is available. At that time, partners will indicate the project as an "operator" within the project settings.
 
 Prior to this, partners are asked not to refer to the operator as "Certified".
 
