@@ -1,0 +1,93 @@
+== Golang and Operator SDK Installation
+This guide covers installing the Operator SDK and prerequisite software including the Go programming language, as well as the container runtimes and utilities required for working with the Operator SDK.
+
+=== Install Golang and Set $GOPATH
+
+On Fedora:
+
+----
+# dnf install golang
+$ echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+$ echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
+----
+
+On RHEL 7 (requires the _optional_ repo):
+
+----
+# yum install golang
+$ echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+$ echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
+----
+
+=== Update Bash Session and Install Dep
+
+On Fedora:
+
+----
+$ source ~/.bashrc
+# dnf install dep
+----
+
+On RHEL 7 (where dep isn't available via yum):
+
+----
+$ source ~/.bashrc
+$ mkdir -p $GOPATH/bin
+$ go get -u github.com/golang/dep/cmd/dep
+----
+
+=== Install Git and Container Runtimes
+
+On Fedora:
+
+----
+# dnf install git docker podman buildah
+----
+
+On RHEL 7 (requires the _extras_ repo for podman/buildah):
+
+----
+# yum install git docker podman buildah
+----
+
+=== Install the Operator SDK and CLI
+
+----
+$ mkdir -p $GOPATH/src/github.com/operator-framework
+$ cd $GOPATH/src/github.com/operator-framework
+$ git clone https://github.com/operator-framework/operator-sdk
+$ cd operator-sdk
+$ git checkout master
+$ make dep
+$ make install
+----
+
+=== Install Ansible and Ansible-Runner
+
+On Fedora:
+
+----
+# dnf install ansible ansible-runner
+----
+
+On RHEL 7 (requires the _ansible-2.6_ repo):
+
+----
+# yum install ansible python-devel python-docutils
+# mkdir -p ~/src/github.com/ansible && cd ~/src/github.com/ansible
+# git clone https://github.com/ansible/ansible-runner
+# cd ansible-runner
+# python setup.py install
+----
+
+=== Install Ansible-Runner-HTTP
+
+On Fedora / RHEL 7:
+
+----
+# mkdir -p ~/src/github.com/ansible
+# cd ~/src/github.com/ansible
+# git clone https://github.com/ansible/ansible-runner-http
+# cd ansible-runner-http
+# python setup.py install
+----
