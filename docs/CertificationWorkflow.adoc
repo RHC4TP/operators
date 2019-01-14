@@ -56,7 +56,7 @@ An example of creating an end to end test for your Operator, using the testing f
 
 == Step Seven: Certify Operator
 
-The operator certification tooling is still under development. It is expected to be available in December 2018. At that time, once the operator has passed the certification scan, it can be published alongside the container image in the Red Hat Container Catalog (RHCC).
+The operator certification tooling is still under development. It is expected to be available in early Q1. At that time, once the operator has passed the certification scan, it can be published alongside the container image in the Red Hat Container Catalog (RHCC).
 
 Until this tooling is released, partners can prepare for certification by: + 
         +     
