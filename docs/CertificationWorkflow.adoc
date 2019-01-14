@@ -27,7 +27,7 @@ We have an extensive guide that will walk you through certifying a container ima
 
 Follow this https://docs.openshift.com/container-platform/3.11/getting_started/install_openshift.html[guide] to install and configure OCP on your system. 
 
-You will need a valid Red Hat supscription to install OCP. If you're a new Red Hat Partner, you can request a no cost subscription https://connect.redhat.com/benefits/software-access[here].
+You will need a valid Red Hat subscription to install OCP. If you're a new Red Hat Partner, you can request a no cost subscription https://connect.redhat.com/benefits/software-access[here].
 
 == Step Four: Install Operator Framework (if you already have a functioning operator, skip to Step Six)
 
