@@ -19,7 +19,7 @@ This walkthrough uses memcached (which has come to be the "Hello World" example 
 
 To begin, we'll create a new project using the `operator-sdk` cli:
 
- operator-sdk new memcached-operator --api-version=cache.example.com/v1alpha1 --kind=Memcached --type=ansible
+ $ operator-sdk new memcached-operator --api-version=cache.example.com/v1alpha1 --kind=Memcached --type=ansible
 
 This will create a project directory in a folder named `memcached-operator` in the current directory.
 Note that we set the GVK (Group, Version, Kind) of the operator as well using the `--api-version` and `--kind` flags.
@@ -43,7 +43,7 @@ The project layout is as follows:
 
 Change into the `memcached-operator` directory:
 
- cd memcached-operator
+ $ cd memcached-operator
 
 NOTE: In this example we will be creating a namespace-scoped operator, meaning that the operator will monitor and manage resources within a certain namespace.
 This approach is generally more flexible than creating a cluster-scoped operator, although there are applicable use cases where it may not be.
@@ -172,13 +172,15 @@ This allows the user to declare how many memcached replicas are desired by creat
 
 === Build the Operator Image
 
+Note that you may need to run the build either as root (or use sudo) or as a member of the `docker` group.
+
 Build the operator container image (this will also tag the image locally):
 
- operator-sdk build quay.io/example/memcached-operator:v0.0.1
+ $ operator-sdk build quay.io/example/memcached-operator:v0.0.1
 
 Once the image is built, push the image to the remote docker registry:
 
- docker push quay.io/example/memcached-operator:v0.0.1
+ $ docker push quay.io/example/memcached-operator:v0.0.1
 
 
 === Deploy the Operator
@@ -187,14 +189,14 @@ The K8s manifests for deployment were created in `deploy/`.
 
 Before deploying the operator, first you must load the Custom Resource Description (CRD) for memcached:
 
- oc create -f deploy/crds/cache_v1alpha1_memcached_crd.yaml
+ $ oc create -f deploy/crds/cache_v1alpha1_memcached_crd.yaml
 
 Finally, deploy the memcached operator:
 
- oc create -f deploy/service_account.yaml
- oc create -f deploy/role.yaml 
- oc create -f deploy/role_binding.yaml
- oc create -f deploy/operator.yaml
+ $ oc create -f deploy/service_account.yaml
+ $ oc create -f deploy/role.yaml 
+ $ oc create -f deploy/role_binding.yaml
+ $ oc create -f deploy/operator.yaml
 
 === Validate the Operator Deployment
 
@@ -228,7 +230,7 @@ You can preview the CR contents prior to deploying:
 
 Deploy the CR using `oc` or `kubectl`:
 
- oc apply -f deploy/crds/cache_v1alpha1_memcached_cr.yaml
+ $ oc apply -f deploy/crds/cache_v1alpha1_memcached_cr.yaml
 
 === Check the Memcached Resources
 
@@ -254,7 +256,7 @@ You can get the operator to change the cluster size by updating the CR.
 
 Change the `spec.size` field of the memcached CR from 3 to 4:
 
- sed -i deploy/crds/cache_v1alpha1_memcached_cr.yaml -e 's/3/4/'
+ $ sed -i deploy/crds/cache_v1alpha1_memcached_cr.yaml -e 's/3/4/'
 
 Verify that the `sed` command updated the CR:
 
