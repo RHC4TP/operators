@@ -93,6 +93,7 @@ Watches.yaml file example:
 In this example, the reconciliation logic for the memcached operator will execute for each Custom Resource with a kind set to `Memcached`.
 
 The logic executed will include the following tasks:
+
 * Create a Deployment for memcached if it doesn't exist
 * Check that the Deployment size is set according to the `Memcached` Custom Resource
 
