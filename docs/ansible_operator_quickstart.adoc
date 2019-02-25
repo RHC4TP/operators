@@ -2,6 +2,7 @@
 
 This guide will walk through using the operator-sdk to create an example operator using Ansible.
 To complete this tutorial you will need the following items installed or accessible:
+
 * The Operator SDK, which itself requires:
 ** git
 ** docker 1.17+
