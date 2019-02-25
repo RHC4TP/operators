@@ -1,0 +1,286 @@
+== Ansible Operator Quickstart Guide
+
+This guide will walk through using the operator-sdk to create an example operator using Ansible.
+To complete this tutorial you will need the following items installed or accessible:
+* The Operator SDK, which itself requires:
+** git
+** docker 1.17+
+** golang 1.10+
+** dep 0.5.0+
+** ansible 2.6+
+** ansible-runner 1.1.0+
+** ansible-runner-http 1.0.0+
+* OpenShift/OKD/minishift 3.9+ or Kubernetes/minikube 1.9+
+* oc 3.9+ or kubectl 1.9+
+* quay.io or some other public container registry account
+
+This walkthrough uses memcached (which has come to be the "Hello World" example of the Operator SDK) as the basis for an Ansible Operator. 
+
+To begin, we'll create a new project using the `operator-sdk` cli:
+
+ operator-sdk new memcached-operator --api-version=cache.example.com/v1alpha1 --kind=Memcached --type=ansible
+
+This will create a project directory in a folder named `memcached-operator` in the current directory.
+Note that we set the GVK (Group, Version, Kind) of the operator as well using the `--api-version` and `--kind` flags.
+The project layout is as follows:
+
+|===
+|Files/Folders |Purpose
+
+|deploy/
+|Contains a generic set of kubernetes manifests for deploying this operator on a kubernetes cluster.
+
+|roles/
+|Contains an Ansible Role initialized using Ansible Galaxy
+
+|build/
+|Contains scripts that the operator-sdk uses for build and initialization.
+
+|watches.yaml
+|Contains Group, Version, Kind, and Ansible invocation method.
+|===
+
+Change into the `memcached-operator` directory:
+
+ cd memcached-operator
+
+NOTE: In this example we will be creating a namespace-scoped operator, meaning that the operator will monitor and manage resources within a certain namespace.
+This approach is generally more flexible than creating a cluster-scoped operator, although there are applicable use cases where it may not be.
+
+=== Watches.yaml File Overview
+
+The `watches.yaml` file is where the GVK (Group, Version, Kind) matching a particular Custom Resource gets mapped to a specific Ansible playbook or role.
+The Ansible Operator will look for the file in `/opt/ansible/watches.yaml`, and the file's schema is outlined below:
+
+* *group* - The Custom Resource group being watched (the part _before_ the `/`, eg: *app.example.com*/v1alpha1)
+* *version* - The Custom Resource version being watched (the part _after_ the `/`, eg: app.example.com/*v1alpha1*)
+* *kind* - The Custom Resource kind being watched (eg: Memcached)
+* *role* (default) - The path to the role that was added to the container. (eg: `/opt/ansible/roles/busybox`)
+* *playbook* - The path to the playbook that was added to the container, intended as a means of calling roles.
+* *reconcilePeriod* (optional) - The interval between reconciliation loop execution, affecting how often the role or playbook gets run.
+* *manageStatus* (optional) - If set to true (the default), then the operator will manage the Custom Resource's status field.
+If set to false, the status field is managed via role or playbook, or by a different controller.
+
+NOTE: The `role` and `playbook` fields in `watches.yaml` are mutually exclusive, meaning you can define either but not both.
+
+Watches.yaml file example:
+
+----
+---
+# Maps a CR kind named App to a role named App
+- version: v1alpha1
+  group: app.example.com
+  role: /opt/ansible/roles/App
+
+# Maps a CR kind named Backend to a playbook
+- version: v1alpha1
+  group: backend.example.com
+  kind: Backend
+  playbook: /opt/ansible/playbook.yml
+
+# Disable the reconciliation loop (run playbook only once) for CR kind named Database
+- version: v1alpha1
+  group: db.example.com
+  kind: Database
+  playbook: /opt/ansible/db.yml
+  reconcilePeriod: 0
+  manageStatus: false
+----
+
+=== Determining the Logic Execution Steps
+
+In this example, the reconciliation logic for the memcached operator will execute for each Custom Resource with a kind set to `Memcached`.
+
+The logic executed will include the following tasks:
+* Create a Deployment for memcached if it doesn't exist
+* Check that the Deployment size is set according to the `Memcached` Custom Resource
+
+With these execution steps determined, we can continue with defining the Ansible Operator.
+
+=== Defining Watches.yaml
+
+Here we've defined a `watches.yaml` file for the memcached operator that executes an Ansible role named `memcached`:
+
+----
+---
+- version: v1alpha1
+  group: cache.example.com
+  kind: Memcached
+  role: /opt/ansible/roles/memcached
+----
+
+=== Defining the Custom Resource Spec
+
+The next step is to modify the Ansible role that was generated at `roles/memcached` in the project directory.
+This role will get executed as part of the Operator's reconciliation loop, and thus is where the logic gets defined.
+
+To define the CR spec (which is done entirely in Ansible), you must populate the default variables file within the role.
+This is done so that our operator's spec variables will have default values, in case a user doesn't set the `spec` field of the CR (meaning no variables would get passed to Ansible as `--extra-vars`).
+The operator passes all key/value pairs within the CR `spec` field to Ansible as variables (`--extra-vars`).
+
+NOTE: The operator will convert spec field names from camelCase to snake_case before passing them to Ansible as `--extra-vars`.
+
+Set a default value for the `size` field of the CR spec by editing `roles/memcached/defaults/main.yaml`:
+
+ size: 1
+
+=== Defining the Reconciliation Logic
+
+With the spec defined, we can move on to defining the tasks that Ansible executes when a resource changes.
+The default behavior for an Ansible Role is to run the tasks listed in `<role>/tasks/main.yml`.
+As determined previously, Ansible will create a Deployment for memcached if it doesn't already exist.
+We will use the `k8s` module for Ansible which will allow us to define the Deployment (or any K8s resource) in an Ansible task.
+
+Edit `roles/memcached/tasks/main.yml` as follows:
+
+----
+---
+- name: start memcached
+  k8s:
+    definition:
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: '{{ meta.name }}-memcached'
+        namespace: '{{ meta.namespace }}'
+      spec:
+        replicas: "{{size}}"
+        selector:
+          matchLabels:
+            app: memcached
+        template:
+          metadata:
+            labels:
+              app: memcached
+          spec:
+            containers:
+            - name: memcached
+              command:
+              - memcached
+              - -m=64
+              - -o
+              - modern
+              - -v
+              image: "docker.io/memcached:1.4.36-alpine"
+              ports:
+                - containerPort: 11211
+----
+
+NOTE: Notice how we used the `size` variable to populate the value of the `replicas` field in the Deployment.
+This allows the user to declare how many memcached replicas are desired by creating a Custom Resource that overrides the default `size` of `1`.
+
+=== Build the Operator Image
+
+Build the operator container image (this will also tag the image locally):
+
+ operator-sdk build quay.io/example/memcached-operator:v0.0.1
+
+Once the image is built, push the image to the remote docker registry:
+
+ docker push quay.io/example/memcached-operator:v0.0.1
+
+
+=== Deploy the Operator
+
+The K8s manifests for deployment were created in `deploy/`.
+
+Before deploying the operator, first you must load the Custom Resource Description (CRD) for memcached:
+
+ oc create -f deploy/crds/cache_v1alpha1_memcached_crd.yaml
+
+Finally, deploy the memcached operator:
+
+ oc create -f deploy/service_account.yaml
+ oc create -f deploy/role.yaml 
+ oc create -f deploy/role_binding.yaml
+ oc create -f deploy/operator.yaml
+
+=== Validate the Operator Deployment
+
+The operator is running as a Deployment in the K8s cluster.
+
+To check that the deployment was created:
+
+ $ oc get deployment
+ NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+ memcached-operator       1         1         1            1           1m
+
+To check that the operator pod is running:
+
+ $ oc get pods
+ NAME                                  READY     STATUS    RESTARTS   AGE
+ memcached-operator-7cc7cfdf86-vvjqk   1/1       Running   0          1m
+
+=== Create a Custom Resource
+
+To test the operator's functionality, use the Custom Resource provided in `deploy/crds/`.
+
+You can preview the CR contents prior to deploying:
+
+ $ cat deploy/crds/cache_v1alpha1_memcached_cr.yaml
+ apiVersion: "cache.example.com/v1alpha1"
+ kind: "Memcached"
+ metadata:
+   name: "example-memcached"
+ spec:
+   size: 3
+
+Deploy the CR using `oc` or `kubectl`:
+
+ oc apply -f deploy/crds/cache_v1alpha1_memcached_cr.yaml
+
+=== Check the Memcached Resources
+
+The operator should have created a deployment for memcached:
+
+ $ oc get deployment
+ NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+ memcached-operator       1         1         1            1           2m
+ example-memcached        3         3         3            3           1m
+
+There should also be 3 memcached pod replicas:
+
+ $ oc get pods
+ NAME                                  READY     STATUS    RESTARTS   AGE
+ example-memcached-6fd7c98d8-7dqdr     1/1       Running   0          1m
+ example-memcached-6fd7c98d8-g5k7v     1/1       Running   0          1m
+ example-memcached-6fd7c98d8-m7vn7     1/1       Running   0          1m
+ memcached-operator-7cc7cfdf86-vvjqk   1/1       Running   0          2m
+ 
+=== Trigger an Event
+
+You can get the operator to change the cluster size by updating the CR.
+
+Change the `spec.size` field of the memcached CR from 3 to 4:
+
+ sed -i deploy/crds/cache_v1alpha1_memcached_cr.yaml -e 's/3/4/'
+
+Verify that the `sed` command updated the CR:
+
+ $ cat deploy/crds/cache_v1alpha1_memcached_cr.yaml
+ apiVersion: "cache.example.com/v1alpha1"
+ kind: "Memcached"
+ metadata:
+   name: "example-memcached"
+ spec:
+   size: 4
+
+With the CR updated, apply the change:
+
+ $ oc apply -f deploy/crds/cache_v1alpha1_memcached_cr.yaml
+
+=== Clean Up Everything
+
+Cleanup the created resources by referencing the K8s manifests in `deploy`:
+
+ $ oc delete -f deploy/crds/cache_v1alpha1_memcached_cr.yaml
+ $ oc delete -f deploy/operator.yaml
+ $ oc delete -f deploy/role_binding.yaml
+ $ oc delete -f deploy/role.yaml
+ $ oc delete -f deploy/service_account.yaml
+ $ oc delete -f deploy/crds/cache_v1alpha1_memcached_cr.yaml
+
+=== Thank you
+
+Thanks for watching the webinar video (or simply using this guide if you've stumbled upon it).
+We'll follow up with more operator content from Red Hat Partner Connect in the near future.
