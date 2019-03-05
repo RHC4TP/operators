@@ -68,7 +68,7 @@ $ make install
 On Fedora:
 
 ----
-# dnf install ansible ansible-runner
+# dnf install ansible python-ansible-runner
 ----
 
 On RHEL 7 (requires the _ansible-2.6_ repo):
