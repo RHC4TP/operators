@@ -1,5 +1,5 @@
 == Minishift Quick Start Guide
-Minishift v1.24 is built using OKD 3.10
+Minishift v1.32 is built using OKD 3.11
 
 The https://connect.redhat.com[Red Hat Connect for Technology Partners] team suggests using minishift for operator development and testing purposes.
 
@@ -14,10 +14,10 @@ Other platforms can be used if desired, such as:
 Currently, Minishift is the easiest way to get a minimal OpenShift cluster up and running in the least amount of time.
 
 === Setup the Virtualization Environment
-Install the `docker-machine-kvm` driver (minishift is tested against version 0.7.0):
+Install the `docker-machine-kvm` driver (minishift is tested against version 0.10.0):
 
 ----
-# curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.7.0/docker-machine-driver-kvm -o /usr/local/bin/docker-machine-driver-kvm
+# curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-centos7 -o /usr/local/bin/docker-machine-driver-kvm
 # chmod +x /usr/local/bin/docker-machine-driver-kvm
 ----
 
@@ -43,11 +43,11 @@ Start/enable the `libvirtd` service:
 === Download and Install Minishift
 Download the archive for your operating system from the https://github.com/minishift/minishift/releases[Minishift Releases] page:
 
- $ curl -LO https://github.com/minishift/minishift/releases/download/v1.24.0/minishift-1.24.0-linux-amd64.tgz
+ $ curl -LO https://github.com/minishift/minishift/releases/download/v1.32.0/minishift-1.32.0-linux-amd64.tgz
 
 Extract the minishift archive into your preferred location (eg: `$HOME/bin` or `/usr/local/bin`):
 
- # tar -xzvf minishift-1.24.0-linux-amd64.tgz --strip-components=1 -C /usr/local/bin */minishift
+ # tar -xzvf minishift-1.32.0-linux-amd64.tgz --strip-components=1 -C /usr/local/bin */minishift
 
 Add the `minishift` binary to your `PATH` environment variable (not necessary if using one of the above suggested locations).
 

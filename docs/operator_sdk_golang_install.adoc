@@ -11,9 +11,10 @@ $ echo 'export GOPATH=$HOME/go' >> ~/.bashrc
 $ echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
 ----
 
-On RHEL 7 (requires the _optional_ repo):
+On RHEL 7 (requires the unofficial EPEL repo):
 
 ----
+# yum install http://ftp.linux.ncsu.edu/epel/epel-release-latest-7.noarch.rpm
 # yum install golang
 $ echo 'export GOPATH=$HOME/go' >> ~/.bashrc
 $ echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
@@ -28,7 +29,7 @@ $ source ~/.bashrc
 # dnf install dep
 ----
 
-On RHEL 7 (where dep isn't available via yum):
+On RHEL 7 (where dep isn't available as a package):
 
 ----
 $ source ~/.bashrc
@@ -44,7 +45,7 @@ On Fedora:
 # dnf install git docker podman buildah
 ----
 
-On RHEL 7 (requires the _extras_ repo for podman/buildah):
+On RHEL 7 (requires the _extras_ repo):
 
 ----
 # yum install git docker podman buildah
