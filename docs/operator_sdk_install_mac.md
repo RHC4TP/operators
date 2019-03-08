@@ -13,6 +13,20 @@ This guide covers installing the Operator SDK and prerequisite software includin
 
 Once your are done with the installations on this list, you will then be able to successfully build your first operator.
 
+### Deploying Your Operator (for development)
+
+If you would like to deploy your operator to a development Kubernetes environment, it is recommended that you use [minishift](https://www.okd.io/minishift/). The best way to go about installing and updating minishift is by using the MacOS package manager, **Homebrew**. To get started, we will need to install the prerequisite software:
+
+* [Homebrew](#install-homebrew)
+* [VirtualBox](#install-virtualbox)
+* [xhyve](#install-xhyve)
+* [OC](#install-openshift-client)
+* [Minishift](#install-minishift)
+
+
+Once we have all of our software dependencies, we can finally deploy our operator to our local kubernetes environment.
+
+
 **Note:** This guide assumes that you are using `/bin/bash` as your default shell. Thus, all manual profile configurations will be in relation to the `.bash_profile` file. If you are using another shell such as `/bin/zsh`, then all manual edits to the profile must occur in the `.zshrc` file. To check which shell you are currently using, run this command: `echo $SHELL`.
 
 Also note that after making edits to your profile, you must either reload your shell with the new configurations or re-log into your computer. This is especially important after installing Golang on your machine. You can reload your shell with:
@@ -202,4 +216,41 @@ ansible 2.7.7
   ansible python module location = /Library/Python/2.7/site-packages/ansible
   executable location = /usr/local/bin/ansible
   python version = 2.7.10 (default, Aug 17 2018, 19:45:58) [GCC 4.2.1 Compatible Apple LLVM 10.0.0 (clang-1000.0.42)]
+```
+
+## Install Homebrew
+
+Let's start off by installing the most popular package manager for MacOS.
+```bash
+[workstation] $ /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+## Install VirtualBox
+
+It is recommended to install VirtualBox straight from the [website](https://www.virtualbox.org/). Due to MacOS's hightened security features, the installation **will fail** the first time. You must go into `system preferences > security & privacy > general` and explicity allow Oracle to install VirtualBox on your machine. Then re-run the installation package.
+
+## Install xhyve
+
+```bash
+[workstation] $ brew update
+[workstation] $ brew install --HEAD xhyve
+```
+
+## Install OpenShift Client (OC)
+
+```bash
+[workstation] $ brew install openshift-cli
+```
+
+## Install Minishift
+
+```bash
+[workstation] $ brew cask install minishift
+```
+
+## Deploy Minishift
+Deploying minishift will take some time depending on your host specifications. Upon deployment, Minishift will create a virtual machine within VirtualBox (in headless mode) and will automatically configure your cluster.
+
+```bash
+[workstation] $ minishift start --vm-driver virtualbox
 ```
