@@ -26,7 +26,7 @@ This guide covers installing the Operator SDK and prerequisite software includin
 
 By unpacking this archive into the `/usr/local/` directory we now have a `/usr/local/go` directory that will hold of the Go's internal parts.
 
-### Adding Go Binaries to The $PATH
+### Adding Go Binaries to The `$PATH`
 
 Before we can actually use the Go tools we'll need to adjust our `$PATH` to include the binaries distributed as part of Go. We need to at the `/usr/local/go/bin` directory to our path by modifying our `~/.barshrc` file:
 
@@ -62,6 +62,7 @@ Each of these directories stores something specific to Go:
 
 Next, let's set the environment variable in our `.bashrc`:
 
+_~/.bashrc_
 ```bash
 # previous lines omitted
 export GOPATH=$HOME/go
@@ -101,3 +102,28 @@ hello, world
 If you see the "hello, world" message then your Go installation is working.
 
 You can run go install to install the binary into your workspace's bin directory or go clean -i to remove it.
+
+
+## Installing Dep
+
+Pre-compiled binaries are available on the [releases](https://github.com/golang/dep/releases) page. You can use the install.sh script to automatically install one for your local platform:
+
+```bash
+[workstation] $ curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+```
+
+## Installing the Operator SDK
+
+```bash
+[workstation] $ mkdir -p $GOPATH/src/github.com/operator-framework
+[workstation] $ cd $GOPATH/src/github.com/operator-framework
+[workstation] $ git clone https://github.com/operator-framework/operator-sdk
+[workstation] $ cd operator-sdk
+[workstation] $ git checkout master
+[workstation] $ make dep
+[workstation] $ make install
+```
+
+## Install Docker Desktop
+
+Installation instructions can be found here: https://docs.docker.com/docker-for-mac/install/
