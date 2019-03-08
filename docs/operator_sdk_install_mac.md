@@ -13,11 +13,11 @@ This guide covers installing the Operator SDK and prerequisite software includin
 
 Once your are done with the installations on this list, you will then be able to successfully build your first operator.
 
-**Note:** This guide assumes that you are using `/bin/bash` as your default shell. Thus, all manual profile configurations will be in relation to the `.bashrc` file. If you are using another shell such as `/bin/zsh`, then all manual edits to the profile must occur in the `.zshrc` file. To check which shell you are currently using, run this command: `echo $SHELL`.
+**Note:** This guide assumes that you are using `/bin/bash` as your default shell. Thus, all manual profile configurations will be in relation to the `.bash_profile` file. If you are using another shell such as `/bin/zsh`, then all manual edits to the profile must occur in the `.zshrc` file. To check which shell you are currently using, run this command: `echo $SHELL`.
 
 Also note that after making edits to your profile, you must either reload your shell with the new configurations or re-log into your computer. This is especially important after installing Golang on your machine. You can reload your shell with:
 
-`$ source ~/.bashrc` or `$ exec $SHELL`
+`$ source ~/.bash_profile`
 
 ## Install Golang
 
@@ -34,17 +34,17 @@ Also note that after making edits to your profile, you must either reload your s
 
 By unpacking this archive into the `/usr/local/` directory we now have a `/usr/local/go` directory that will hold of the Go's internal parts.
 
-### Adding Go Binaries to The `$PATH`
+### Adding Go Binaries to the `$PATH`
 
 Before we can actually use the Go tools we'll need to adjust our `$PATH` to include the binaries distributed as part of Go. We need to at the `/usr/local/go/bin` directory to our path by modifying our `~/.barshrc` file:
 
-_~/.bashrc_
+_~/.bash_profile_
 ```bash
 # previous lines omitted
 export PATH=$PATH:/usr/local/go/bin
 ```
 
-Now we're able to run the `go` tool after reloading our `.bashrc` file:
+Now we're able to run the `go` tool after reloading our `.bash_profile` file:
 
 ```bash
 [workstation] ~ $ exec $SHELL
@@ -54,7 +54,7 @@ go version go1.12 darwin/amd64
 
 ### Setting Up the `$GOPATH`
 
-Go uses a very specific folder structure and environment variables to know where to find Go code. For the code that we'll be writing, we need to put them into a path that we store as the `$GOPATH` environment variable. We'll set this directory structure up at `$HOME/go` and set the `$GOPATH` within our `.bashrc`.
+Go uses a very specific folder structure and environment variables to know where to find Go code. For the code that we'll be writing, we need to put them into a path that we store as the `$GOPATH` environment variable. We'll set this directory structure up at `$HOME/go` and set the `$GOPATH` within our `.bash_profile`.
 
 Let's create the directory structure first:
 
@@ -68,9 +68,9 @@ Each of these directories stores something specific to Go:
 * `$GOPATH/bin` - contains executables
 * `$GOPATH/pkg` - contains our packages pulled in by Dep
 
-Next, let's set the environment variable in our `.bashrc`:
+Next, let's set the environment variable in our `.bash_profile`:
 
-_~/.bashrc_
+_~/.bash_profile_
 ```bash
 # previous lines omitted
 export GOPATH=$HOME/go
@@ -113,7 +113,7 @@ You can run go install to install the binary into your workspace's bin directory
 
 ## Install Dep
 
-Pre-compiled binaries are available on the [releases](https://github.com/golang/dep/releases) page. You can use the install.sh script to automatically install one for your local platform:
+Pre-compiled binaries are available on the [releases](https://github.com/golang/dep/releases) page. You can use the `install.sh` script to automatically install one for your local platform:
 
 ```bash
 [workstation] $ curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
