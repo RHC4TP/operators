@@ -11,9 +11,11 @@ This guide covers installing the Operator SDK and prerequisite software includin
 * [Docker](#install-docker-desktop)
 * [Ansible](#install-ansible)
 
-**Note:** This guide assumes that you are using `/bin/bash` as your default shell. Thus, all manual profile configurations will be in relation to the `.bashrc` file. If you are using another shell such as `/bin/zsh`, then all manual edits to the profile must occur in the `.zshrc` file. To check which shell you are currently using run this command: `echo $SHELL`.
+Once your are done with the installations on this list, you will then be able to successfully build your first operator.
 
-Also note that after making edits, you must either reload your shell with the new configurations or re-log into your computer. You can reload your shell with:
+**Note:** This guide assumes that you are using `/bin/bash` as your default shell. Thus, all manual profile configurations will be in relation to the `.bashrc` file. If you are using another shell such as `/bin/zsh`, then all manual edits to the profile must occur in the `.zshrc` file. To check which shell you are currently using, run this command: `echo $SHELL`.
+
+Also note that after making edits to your profile, you must either reload your shell with the new configurations or re-log into your computer. This is especially important after installing Golang on your machine. You can reload your shell with:
 
 `$ source ~/.bashrc` or `$ exec $SHELL`
 
@@ -57,14 +59,14 @@ Go uses a very specific folder structure and environment variables to know where
 Let's create the directory structure first:
 
 ```bash
-[workstation] ~ $ mkdir -p $HOME/go/{bin,src,pkg}
+[workstation] $ mkdir -p $HOME/go/{bin,src,pkg}
 ```
 
 Each of these directories stores something specific to Go:
 
 * `$GOPATH/src` - contains Go source files
 * `$GOPATH/bin` - contains executables
-* `$GOPATH/pkg` - containers our packages pulled in by Dep
+* `$GOPATH/pkg` - contains our packages pulled in by Dep
 
 Next, let's set the environment variable in our `.bashrc`:
 
@@ -108,7 +110,6 @@ hello, world
 If you see the "hello, world" message then your Go installation is working.
 
 You can run go install to install the binary into your workspace's bin directory or go clean -i to remove it.
-
 
 ## Install Dep
 
@@ -187,7 +188,7 @@ Server: Docker Engine - Community
 With Homebrew (Easiest Way)
 
 ```bash
-[workstation] brew install ansible
+[workstation] $ brew install ansible
 ```
 
 ### Test Your Installation
