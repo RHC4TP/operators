@@ -5,15 +5,21 @@
 
 This guide covers installing the Operator SDK and prerequisite software including:
 
-* Golang
-* Dep
-* Operator SDK
-* Docker
-* Ansible
+* [Golang](#install-golang)
+* [Dep](#install-dep)
+* [Operator SDK](#install-the-operator-sdk)
+* [Docker](#install-docker-desktop)
+* [Ansible](#install-ansible)
 
-## Installing Golang
+**Note:** This guide assumes that you are using `/bin/bash` as your default shell. Thus, all manual profile configurations will be in relation to the `.bashrc` file. If you are using another shell such as `/bin/zsh`, then all manual edits to the profile must occur in the `.zshrc` file. To check which shell you are currently using run this command: `echo $SHELL`.
 
-### Download Go
+Also note that after making edits, you must either reload your shell with the new configurations or re-log into your computer. You can reload your shell with:
+
+`$ source ~/.bashrc` or `$ exec $SHELL`
+
+## Install Golang
+
+### Download Golang
 
 ```bash
 [workstation] ~ $ cd /tmp
@@ -95,7 +101,7 @@ Then build it with the go tool:
 The command above will build an executable named hello in the directory alongside your source code. Execute it to see the greeting:
 
 ```bash
-$ ./hello
+[workstation] $ ./hello
 hello, world
 ```
 
@@ -104,7 +110,7 @@ If you see the "hello, world" message then your Go installation is working.
 You can run go install to install the binary into your workspace's bin directory or go clean -i to remove it.
 
 
-## Installing Dep
+## Install Dep
 
 Pre-compiled binaries are available on the [releases](https://github.com/golang/dep/releases) page. You can use the install.sh script to automatically install one for your local platform:
 
@@ -112,7 +118,22 @@ Pre-compiled binaries are available on the [releases](https://github.com/golang/
 [workstation] $ curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 ```
 
-## Installing the Operator SDK
+### Test Your Installation
+
+```bash
+[workstation] $ dep version
+
+dep:
+ version     : v0.5.0
+ build date  : 2018-08-16
+ git hash    : 224a564
+ go version  : go1.10.3
+ go compiler : gc
+ platform    : darwin/amd64
+ features    : ImportDuringSolve=false
+```
+
+## Install the Operator SDK
 
 ```bash
 [workstation] $ mkdir -p $GOPATH/src/github.com/operator-framework
@@ -124,6 +145,60 @@ Pre-compiled binaries are available on the [releases](https://github.com/golang/
 [workstation] $ make install
 ```
 
+### Test Your Installation
+
+```bash
+[workstation] $ operator-sdk --version
+
+operator-sdk version v0.5.0+git
+```
+
 ## Install Docker Desktop
 
 Installation instructions can be found here: https://docs.docker.com/docker-for-mac/install/
+
+### Test Your Installation
+
+```bash
+[workstation] $ docker version
+
+Client: Docker Engine - Community
+ Version:           18.09.2
+ API version:       1.39
+ Go version:        go1.10.8
+ Git commit:        6247962
+ Built:             Sun Feb 10 04:12:39 2019
+ OS/Arch:           darwin/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          18.09.2
+  API version:      1.39 (minimum version 1.12)
+  Go version:       go1.10.6
+  Git commit:       6247962
+  Built:            Sun Feb 10 04:13:06 2019
+  OS/Arch:          linux/amd64
+  Experimental:     false
+```
+
+## Install Ansible
+
+With Homebrew (Easiest Way)
+
+```bash
+[workstation] brew install ansible
+```
+
+### Test Your Installation
+
+```bash
+[workstation] $ ansible --version
+
+ansible 2.7.7
+  config file = None
+  configured module search path = [u'/Users/<user>/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /Library/Python/2.7/site-packages/ansible
+  executable location = /usr/local/bin/ansible
+  python version = 2.7.10 (default, Aug 17 2018, 19:45:58) [GCC 4.2.1 Compatible Apple LLVM 10.0.0 (clang-1000.0.42)]
+```
