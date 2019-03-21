@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: httpd-operator
+  template:
+    metadata:
+      labels:
+        name: httpd-operator
+    spec:
+      serviceAccountName: httpd-operator
+      containers:
+        - name: httpd-operator
+          # Replace this with the built image name
+          image: quay.io/jmanning/httpd-operator:v0.0.3
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "httpd-operator"
