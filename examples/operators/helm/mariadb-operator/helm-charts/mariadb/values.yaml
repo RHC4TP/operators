@@ -1,0 +1,45 @@
+image:
+  registry: registry.access.redhat.com
+  repository: rhscl/mariadb-102-rhel7
+  tag: latest
+  pullPolicy: IfNotPresent
+
+db:
+  # You *must* set values for the username and passwords below
+  # Passwords cannot be randomly generated using gotpl, as this causes them to change on
+  # each invocation of the reconciliation loop (helm chart apply)
+  user: exampleusr
+  password: ex4mp13P4ssw0rd
+  rootPassword: ex4mp13r00tP4ssw0rd
+  name: sampledb
+  config: |-
+    [mysqld]
+    datadir=/var/lib/mysql/data
+    basedir=/opt/rh/rh-mariadb102/root/usr
+    plugin-dir=/opt/rh/rh-mariadb102/root/usr/lib64/mysql/plugin
+    port=3306
+    bind-address=0.0.0.0
+    max_allowed_packet=16M
+    symbolic-links=0
+    skip_name_resolve
+    ignore-db-dir=lost+found
+    character-set-server=UTF8
+    collation-server=utf8_general_ci
+    general_log=0
+    general_log_file=/var/lib/mysql/data/mysql-query.log
+
+    [client]
+    port=3306
+    default-character-set=UTF8
+
+# Note: changing the service port below is possible, but the container itself can only expose port 3306   
+service:
+  type: ClusterIP
+  port: 3306
+
+# When setting `resources:` via the CR, remove the curly braces and uncomment as necessary
+# We don't default these, allowing the user set them if desired
+resources: {}
+  # limits:
+    # cpu: 100m
+    # memory: 512M 

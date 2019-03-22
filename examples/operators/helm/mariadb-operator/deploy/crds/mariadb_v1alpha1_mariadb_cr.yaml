@@ -1,0 +1,11 @@
+apiVersion: mariadb.example.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: example-mariadb
+spec:
+  # Default values copied from <project_dir>/helm-charts/mariadb/values.yaml
+  
+  # Default values for mariadb.
+  # This is a YAML-formatted file.
+  # Declare variables to be passed into your templates.
+   

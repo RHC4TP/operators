@@ -46,7 +46,6 @@
           targetPort: 8443
         selector:
           app: httpd
-          deployment: '{{ meta.name }}-httpd'
         sessionAffinity: None
         type: ClusterIP 
 

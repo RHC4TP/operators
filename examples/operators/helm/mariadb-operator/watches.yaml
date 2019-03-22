@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: mariadb.example.com
+  kind: MariaDB
+  chart: /opt/helm/helm-charts/mariadb
