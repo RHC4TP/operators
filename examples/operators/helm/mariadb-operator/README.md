@@ -42,7 +42,7 @@ Values are relative to the `spec:` field in the Custom Resource.
 * **db.username** - The username used to access the database (defaults to exampleusr)
 * **db.password** - The password used to access the database
 * **db.rootPassword** - The MariaDB root password
-* **db.name**" - The name of the database to be created (defaults to sampledb)
+* **db.name** - The name of the database to be created (defaults to sampledb)
 
 ## Advanced Features
 
@@ -54,7 +54,7 @@ Values are relative to the `spec:` field in the Custom Resource
 * **image.repository** - The repository path (appended to the registry URL) above where the container image resides (defaults to `rhscl/mariadb-102-rhel`)
 * **image.tag** - The container image tag (defaults to `:latest`)
 * **db.config** - The MariaDB configuration populating `my.cnf` inside the container. Keep in minde that the rhscl/mariadb-102-rhel container is hard-coded to expose port 3306 (if you want to change this then you'll have to specify a custom MariaDB container image)
-* **resources** - Define your own Pod resource limits (cpu and memory)
+* **resources** - Define your own Pod resource limits (`limits.cpu` and `limits.memory`)
 * **service.type** - The type of Service to configure for MariaDB (defaults to `ClusterIP`)
 * **service.port** - The TCP port that the Service will listen on
 
