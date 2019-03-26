@@ -31,13 +31,25 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.db.rootPassword | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mariadb.fullname" . }}
+              key: database-root-password
         - name: MYSQL_USER
-          value: "{{ .Values.db.user }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mariadb.fullname" . }}
+              key: database-user
         - name: MYSQL_PASSWORD
-          value: "{{ .Values.db.password }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mariadb.fullname" . }}
+              key: database-password
         - name: MYSQL_DATABASE
-          value: "{{ .Values.db.name }}"
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "mariadb.fullname" . }}
+              key: database-name
         ports:
         - name: mysql
           containerPort: 3306
@@ -51,9 +63,12 @@ spec:
             command: ["sh", "-c", "exec $MYSQL_PREFIX/bin/mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD -e 'SELECT 1'"]
           initialDelaySeconds: 5
           timeoutSeconds: 1
+        {{- if .Values.resources.limits }}
         resources:
           limits:
-            memory: "512Mi"
+            cpu: {{ .Values.resources.limits.cpu | quote }}
+            memory: {{ .Values.resources.limits.memory | quote }}
+        {{- end }}
         volumeMounts:
         - name: "{{ template "mariadb.name" . }}-data"
           mountPath: "/var/lib/mysql/data"

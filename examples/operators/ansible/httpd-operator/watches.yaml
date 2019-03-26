@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: apache.example.com
+  kind: HTTPD
+  role: /opt/ansible/roles/httpd

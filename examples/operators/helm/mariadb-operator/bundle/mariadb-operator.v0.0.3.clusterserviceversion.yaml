@@ -1,0 +1,247 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [{
+         "apiVersion": "mariadb.example.com/v1alpha1",
+         "kind": "MariaDB",
+         "metadata": {
+            "name": "example-mariadb"
+         },
+         "spec": {
+            "image": {
+               "registry": "registry.access.redhat.com",
+               "repository": "rhscl/mariadb-102-rhel7",
+               "tag": "latest",
+               "pullPolicy": "IfNotPresent"
+            },
+            "db": {
+               "user": "exampleusr",
+               "password": "ex4mp13P4ssw0rd",
+               "rootPassword": "ex4mp13r00tP4ssw0rd",
+               "name": "sampledb",
+               "config": "[mysqld]\ndatadir=/var/lib/mysql/data\nbasedir=/opt/rh/rh-mariadb102/root/usr\nplugin-dir=/opt/rh/rh-mariadb102/root/usr/lib64/mysql/plugin\nport=3306\nbind-address=0.0.0.0\nmax_allowed_packet=16M\nsymbolic-links=0\nskip_name_resolve\nignore-db-dir=lost+found\ncharacter-set-server=UTF8\ncollation-server=utf8_general_ci\ngeneral_log=0\ngeneral_log_file=/var/lib/mysql/data/mysql-query.log\n\n[client]\nport=3306\ndefault-character-set=UTF8"
+            },
+            "service": {
+               "type": "ClusterIP",
+               "port": 3306
+            },
+            "resources": {}
+         }
+      }]
+    categories: "Database,Red Hat Partner Connect"
+    certified: "false"
+    containerImage: quay.io/jmanning/mariadb-operator:v0.0.3
+    createdAt: 2019-02-06T12:59:59Z
+    description: Install an example single-instance of MariaDB
+    support: Red Hat Connect
+  name: mariadb-operator.v0.0.3
+  namespace: "placeholder"
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+      - description: MariaDB Example by Red Hat Partner Connect
+        displayName: MariaDB Example
+        kind: MariaDB
+        name: mariadbs.mariadb.example.com
+        resources:
+          - kind: Deployment
+            name: ""
+            version: apps/v1
+          - kind: Pod
+            name: ""
+            version: v1
+          - kind: Service
+            name: ""
+            version: v1
+          - kind: Secret
+            name: ""
+            version: v1
+          - kind: ConfigMap
+            name: ""
+            version: v1
+        specDescriptors:
+          - description: The registry base URL fo MariaDB
+            displayName: Registry URL
+            path: image.repository
+          - description: Registry namespace/repository for MariaDB
+            displayName: Image Repository
+            path: image.repository
+          - description: Container image tag for MariaDB
+            displayName: Image Tag
+            path: image.tag
+          - description: Image pull policy stating whether or not to pull from the local image store
+            displayName: Pull Policy
+            path: image.pullPolicy
+          - description: Username for accessing the Database
+            displayName: Database Username
+            path: db.username
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:Secret'
+          - description: Password for accessing the Database
+            displayName: Database Password
+            path: db.password
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:Secret'
+          - description: Root Password for MariaDB
+            displayName: MariaDB Root Password
+            path: db.rootPassword
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:Secret'
+          - description: Name of database to create
+            displayName: Database Name
+            path: db.name
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:Secret'
+          - description:  ConfigMap containing contents of my.cnf
+            displayName: Config
+            path: db.config
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:ConfigMap'
+          - description:  Service type to create
+            displayName: Service Type
+            path: service.type
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:Service'
+          - description:  Service port to expose internally
+            displayName: Service Port
+            path: service.port
+            x-descriptors:
+              - 'urn:alm:descriptor:io.kubernetes:core:v1:Service'
+          - description: Define resources requests and limits for individual Pods
+            displayName: Resource Requirements
+            path: resources
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:resourceRequirements'
+        statusDescriptors:
+          - description: Deployed version info
+            displayName: Version
+            path: version
+          - description: Last updated time
+            displayName: Last Updated
+            path: updatedTimestamp
+            x-descriptors:
+              - 'urn:alm:descriptor:timestamp'
+        version: v1alpha1
+  description: |
+    
+  displayName: Dynatrace OneAgent
+  icon:
+    - base64data: TODO
+      mediatype: "image/png"
+  install:
+    spec:
+      deployments:
+        - name: mariadb-operator
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                name: mariadb-operator
+            template:
+              metadata:
+                labels:
+                  name: mariadb-operator
+              spec:
+                serviceAccountName: mariadb-operator
+                containers:
+                  - name: mariadb-operator
+                    # Replace this with the built image name
+                    image: quay.io/jmanning/mariadb-operator:v0.0.3
+                    ports:
+                    - containerPort: 60000
+                      name: metrics
+                    imagePullPolicy: Always
+                    env:
+                      - name: WATCH_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
+                      - name: POD_NAME
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      - name: OPERATOR_NAME
+                        value: "mariadb-operator"            
+      permissions:
+        - rules:
+          - apiGroups:
+            - ""
+            resources:
+            - pods
+            - services
+            - endpoints
+            - persistentvolumeclaims
+            - events
+            - configmaps
+            - secrets
+            verbs:
+            - '*'
+          - apiGroups:
+            - ""
+            resources:
+            - namespaces
+            verbs:
+            - get
+          - apiGroups:
+            - apps
+            resources:
+            - deployments
+            - daemonsets
+            - replicasets
+            - statefulsets
+            verbs:
+            - '*'
+          - apiGroups:
+            - monitoring.coreos.com
+            resources:
+            - servicemonitors
+            verbs:
+            - get
+            - create
+          - apiGroups:
+            - mariadb.example.com
+            resources:
+            - '*'
+            verbs:
+            - '*' 
+          serviceAccountName: mariadb-operator
+      # Required to run on OpenShift
+      #clusterPermissions:
+      #  - rules:
+      #      - verbs:
+      #          - use
+      #        apiGroups:
+      #          - security.openshift.io
+      #        resources:
+      #          - securitycontextconstraints
+      #        resourceNames:
+      #          - anyuid
+      #    serviceAccountName: mariadb-operator
+    strategy: deployment
+  installModes:
+    - supported: true
+      type: OwnNamespace
+    - supported: true
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: false
+      type: AllNamespaces
+  keywords:
+    - database
+    - sql
+  links:
+    - name: MariaDB Example Operator - RHC4TP GitHub
+      url: https://github.com/RHC4TP/operators/tree/master/examples/operators/helm/mariadb-operator
+    - name: Partner Guide for Certifying your Operator
+      url: https://operators.gitbook.io/partner-guide-for-certifying-your-operator/
+  maintainers:
+    - email: connect@redhat.com
+      name: Red Hat Partner Connect
+  maturity: alpha
+  provider:
+    name: Red Hat Partner Connect
+  version: 0.0.3
