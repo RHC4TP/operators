@@ -39,6 +39,14 @@ rules:
   - get
   - create
 - apiGroups:
+  - apps
+  resourceNames:
+  - mariadb-operator
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+- apiGroups:
   - mariadb.example.com
   resources:
   - '*'

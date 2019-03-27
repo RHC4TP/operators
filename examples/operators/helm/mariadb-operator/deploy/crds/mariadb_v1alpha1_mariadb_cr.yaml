@@ -51,6 +51,6 @@ spec:
   # When setting `resources:` via the CR, remove the curly braces and uncomment as necessary
   # We don't default these, allowing the user set them if desired
   resources: {}
-    # limits:
-      # cpu: 100m
-      # memory: 512M 
+  # limits:
+  #   cpu: 100m
+  #   memory: 512M 

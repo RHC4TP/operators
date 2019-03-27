@@ -1,0 +1,4 @@
+packageName: mariadb
+channels:
+  - name: alpha
+    currentCSV: mariadb-operator.v0.0.3
