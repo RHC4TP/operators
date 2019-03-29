@@ -22,6 +22,7 @@ spec:
         release: "{{ .Release.Name }}"
         chart: {{ template "mariadb.chart" . }}
     spec:
+      serviceAccountName: {{ .Values.serviceAccountName | quote }}
       securityContext:
         runAsUser: 1001
         fsGroup: 1001
@@ -63,11 +64,26 @@ spec:
             command: ["sh", "-c", "exec $MYSQL_PREFIX/bin/mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -p$MYSQL_PASSWORD -e 'SELECT 1'"]
           initialDelaySeconds: 5
           timeoutSeconds: 1
-        {{- if .Values.resources.limits }}
+        {{- if .Values.resources }}
         resources:
+          {{- if .Values.resources.limits }}
           limits:
+            {{- if .Values.resources.limits.cpu }}
             cpu: {{ .Values.resources.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.limits.memory }}
             memory: {{ .Values.resources.limits.memory | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.resources.requests }}
+          requests:
+            {{- if .Values.resources.requests.cpu }}
+            cpu: {{ .Values.resources.requests.cpu | quote }}
+            {{- end }}
+            {{- if .Values.resources.requests.memory }}
+            memory: {{ .Values.resources.requests.memory | quote }}
+            {{- end }}
+          {{- end }}
         {{- end }}
         volumeMounts:
         - name: "{{ template "mariadb.name" . }}-data"

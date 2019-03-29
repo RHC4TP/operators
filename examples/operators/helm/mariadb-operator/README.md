@@ -57,4 +57,4 @@ Values are relative to the `spec:` field in the Custom Resource.
 * **resources** - Define your own Pod resource limits (`limits.cpu` and `limits.memory`)
 * **service.type** - The type of Service to configure for MariaDB (defaults to `ClusterIP`)
 * **service.port** - The TCP port that the Service will listen on
-
+* **serviceAccountName** - The name of the service account that will deploy MariaDB (NOTE: This **must** match the account name defined in the ClusterServiceVersion)

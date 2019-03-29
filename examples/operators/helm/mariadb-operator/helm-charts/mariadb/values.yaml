@@ -37,9 +37,20 @@ service:
   type: ClusterIP
   port: 3306
 
-# When setting `resources:` via the CR, remove the curly braces and uncomment as necessary
-# We don't default these, allowing the user set them if desired
+# Important!
+# This service account name should match what is defined in `deploy/service_account.yaml` or `ClusterServiceVersion.yaml` when using OLM/OperatorHub
+# These account names must match or else your operator will *not* deploy to OpenShift
+# This feature is provided as an easy way to adjust the service account used to deploy the MariaDB without having to rebuild the operator (if it were hard coded)
+serviceAccountName: mariadb-operator
+
 resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
-    # cpu: 100m
-    # memory: 512M 
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi

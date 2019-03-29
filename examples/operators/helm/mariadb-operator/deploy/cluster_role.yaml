@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: mariadb-operator
+rules:
+- verbs:
+    - use
+  apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+  resourceNames:
+    - anyuid
