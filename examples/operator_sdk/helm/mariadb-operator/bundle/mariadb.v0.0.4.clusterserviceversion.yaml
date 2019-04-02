@@ -32,7 +32,7 @@ metadata:
          }
       }]
     categories: "Database,Red Hat Partner Connect"
-    capabilities: "basic install"
+    capabilities: "Basic Install"
     certified: "false"
     containerImage: quay.io/jmanning/mariadb-operator:v0.0.4
     createdAt: 2019-03-27T12:59:59Z
@@ -122,14 +122,11 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:resourceRequirements'
         statusDescriptors:
-          - description: Deployed version info
-            displayName: Version
-            path: version
-          - description: Last updated time
-            displayName: Last Updated
-            path: updatedTimestamp
+          - description: Current deployed state
+            displayName: Conditions
+            path: conditions
             x-descriptors:
-              - 'urn:alm:descriptor:timestamp'
+              - 'urn:alm:descriptor:io.kubernetes.conditions'
         version: v1alpha1
   description: |
     This is a simplified example Helm Operator for MariaDB, which is purely intended for demonstration and educational purposes.
