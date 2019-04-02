@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: apm.instana.com
+  kind: Instana
+  chart: /opt/helm/helm-charts/instana-agent

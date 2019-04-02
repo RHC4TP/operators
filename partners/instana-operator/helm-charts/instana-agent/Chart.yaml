@@ -1,0 +1,4 @@
+name: instana-agent
+version: 1.0.3
+description: Instana Agent for Kubernetes
+home: https://www.instana.com/
