@@ -19,7 +19,7 @@ spec:
 {{ toYaml .Values.podAnnotations | indent 8}}
 {{- end }}
     spec:
-      serviceAccount: {{ .Values.instana.agent.name }}
+      serviceAccount: {{ .Values.serviceAccount }}
       hostIPC: true
       hostNetwork: true
       hostPID: true

@@ -10,12 +10,9 @@ spec:
   # Declare variables to be passed into your templates.
   
   image:
-    name: registry.access.redhat.com/instana/agent
+    name: registry.connect.redhat.com/instana/agent
     tag: latest
     pullPolicy: IfNotPresent
-
-  rbac:
-    create: true
 
   instana:
     zone: k8s-cluster-name
@@ -29,6 +26,10 @@ spec:
 
   ## Annotations to be added to pods
   podAnnotations: {}
+
+  ## Service Account that will run instana-agent pods
+  ## This must match the service account name defined in the ClusterServiceVersion under `clusterpermissions:`
+  serviceAccount: instana-agent
 
   ## Tolerations for pod assignment
   ### Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
