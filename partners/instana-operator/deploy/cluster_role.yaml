@@ -13,6 +13,7 @@ rules:
   resourceNames:
     - privileged
     - hostaccess
+    - hostnetwork
 - nonResourceURLs:
     - /version
     - /healthz

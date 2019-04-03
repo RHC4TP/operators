@@ -14,9 +14,6 @@ rules:
   - events
   - configmaps
   - secrets
-  - serviceaccounts
-  - clusterroles
-  - clusterrolebindings
   verbs:
   - '*'
 - apiGroups:

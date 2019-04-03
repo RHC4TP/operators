@@ -1,3 +1,5 @@
 *.html
 *.zip
+*.test.yaml
+*.test.yml
 .DS_Store
