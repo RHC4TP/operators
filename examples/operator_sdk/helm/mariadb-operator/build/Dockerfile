@@ -5,7 +5,7 @@ LABEL name="MariaDB Example Operator" \
       vendor="Red Hat Connect" \
       version="v0.0.4" \
       release="1" \
-      summary="This is an example operator." \
+      summary="This is an example MariaDB operator." \
       description="This operator will deploy a single instance of MariaDB with ephemeral storage."
 
 # Required Licenses

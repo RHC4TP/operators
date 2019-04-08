@@ -34,7 +34,7 @@ metadata:
     categories: "Database,Red Hat Partner Connect"
     capabilities: "Basic Install"
     certified: "false"
-    containerImage: quay.io/jmanning/mariadb-operator:v0.0.4
+    containerImage: quay.io/rhc4tp/mariadb-operator:v0.0.4
     createdAt: 2019-03-27T12:59:59Z
     description: Install an example single-instance of MariaDB
     repository: https://github.com/RHC4TP/operators/tree/master/examples/operators/helm/mariadb-operator
