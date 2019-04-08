@@ -18,7 +18,7 @@ spec:
     zone: k8s-cluster-name
     leaderElectorPort: 42655
     agent:
-      #key: your-key
+      key: YOUR-KEY-GOES-HERE
       name: instana-agent
       endpoint:
         host: saas-us-west-2.instana.io
