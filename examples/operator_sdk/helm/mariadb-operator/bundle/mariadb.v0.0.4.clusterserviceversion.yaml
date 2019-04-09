@@ -31,7 +31,7 @@ metadata:
             "resources": {}
          }
       }]
-    categories: "Database,Red Hat Partner Connect"
+    categories: "Database,OpenShift Optional"
     capabilities: "Basic Install"
     certified: "false"
     containerImage: quay.io/rhc4tp/mariadb-operator:v0.0.4
