@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: apigw.newrelichq.com
+  kind: Newrelic
+  chart: /opt/helm/helm-charts/newrelic-infrastructure
