@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
-  name: Newrelic-operator
+  name: newrelic-operator
 rules:
 - apiGroups:
   - ""
@@ -41,13 +41,13 @@ rules:
 - apiGroups:
   - apps
   resourceNames:
-  - Newrelic-operator
+  - newrelic-operator
   resources:
   - deployments/finalizers
   verbs:
   - update
 - apiGroups:
-  - apigw.newrelichq.com
+  - apm.newrelic.com
   resources:
   - '*'
   verbs:

@@ -5,18 +5,14 @@
 # https://docs.newrelic.com/docs/kubernetes-monitoring-integration
 # cluster: ""
 
-# kubeStateMetricsUrl - if provided, the discovery process for kube-state-metrics endpoint won't be triggered
-# Only HTTP is accepted. This is an example value: http://172.17.0.3:8080
-# kubeStateMetricsUrl:
-
 verboseLog: false
 
 # This can be set, the default is shown below
 # logFile: /var/log/nr-infra.log
 
 image:
-  repository: registry.connect.redhat.com/newrelic-openshift/newrelic-infrastructure-k8s-1
-  tag: latest
+  repository: registry.connect.redhat.com/newrelic-openshift/infrastructure-k8s
+  tag: 1.6.0.1
   pullPolicy: IfNotPresent
 
 resources:
@@ -30,14 +26,14 @@ resources:
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
-  pspEnabled: false
 
 serviceAccount:
   # Specifies whether a ServiceAccount should be created
   create: true
   # The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template
-  name:
+  # NOTE: This value *must* match the service account name defined in deploy/cluster_role.yaml or the ClusterServiceVersion
+  name: newrelic-infrastructure
 
 # If you wish to provide additional labels to apply to the pod(s), specify
 # them here
@@ -90,6 +86,3 @@ nodeSelector: {}
 tolerations: []
 
 updateStrategy: RollingUpdate
-
-# Custom attributes to be passed to the New Relic agent
-customAttribues: "'{\"clusterName\":\"$(CLUSTER_NAME)\"}'"

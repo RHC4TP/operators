@@ -1,5 +1,5 @@
-apiVersion: apigw.newrelichq.com/v1alpha1
-kind: Newrelic
+apiVersion: apm.newrelic.com/v1alpha1
+kind: NewRelic
 metadata:
   name: example-newrelic
 spec:
@@ -27,9 +27,9 @@ spec:
 # logFile: /var/log/nr-infra.log
 
   image:
-  repository: registry.connect.redhat.com/newrelic-openshift/newrelic-infrastructure-k8s-1
-  tag: latest
-  pullPolicy: IfNotPresent
+    repository: registry.connect.redhat.com/newrelic-openshift/newrelic-infrastructure-k8s-1
+    tag: 1.6.0.1
+    pullPolicy: IfNotPresent
 
   resources:
     limits:
@@ -49,7 +49,8 @@ spec:
     create: true
     # The name of the ServiceAccount to use.
     # If not set and create is true, a name is generated using the fullname template
-    name:
+    # NOTE: This value *must* match the service account name defined in deploy/cluster_role.yaml or the ClusterServiceVersion
+    name: newrelic-infrastructure
 
   # If you wish to provide additional labels to apply to the pod(s), specify
   # them here
