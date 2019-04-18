@@ -44,7 +44,7 @@ metadata:
       }]
     categories: "Monitoring,OpenShift Optional"
     capabilities: "Basic Install"
-    certified: "false"
+    certified: "true"
     containerImage: quay.io/rhc4tp/newrelic-operator:v0.0.3
     createdAt: 2019-04-18T12:59:59Z
     description: Deploy the NewRelic agent from a helm chart onto your Kubernetes or OpenShift cluster
@@ -124,7 +124,7 @@ spec:
             path: tolerations
           - description: Define resources requests and limits for individual Pods
             displayName: Compute Resources
-            path: computeResources
+            path: apm_v1alpha1_newrelic_cr.yaml
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:resourceRequirements'
         statusDescriptors:
