@@ -9,4 +9,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: newrelic-infrastructure
-  namespace: REPLACE_NAMESPACE
+  namespace: newrelic-infrastructure
