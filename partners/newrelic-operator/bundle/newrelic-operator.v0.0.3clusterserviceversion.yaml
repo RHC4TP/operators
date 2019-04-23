@@ -224,7 +224,15 @@ spec:
             - get
             - create
           - apiGroups:
-            - newrelic.example.com
+            - apps
+            resourceNames:
+            - newrelic-operator
+            resources:
+            - deployments/finalizers
+            verbs:
+            - update
+          - apiGroups:
+            - apm.newrelic.com
             resources:
             - '*'
             verbs:
