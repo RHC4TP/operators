@@ -1,0 +1,16 @@
+*It may take a few minutes for the environment to be available*
+{{- if eq (index .Values "pu" "license") ("tryme")}}
+You are using the GigaSpaces 'TRYME' trial license. You can explore all of the product functionality, including our Premium and Enterprise features, for 24 hours.
+When the trial license expires, this process will self-terminate. You can get an extended evaluation license from gigaspaces.com/eval-license.
+
+{{- end }}
+
+{{- if and (not (index .Values "pu" "antiAffinity" "enabled")) (index .Values "pu" "ha") }}
+WARNING - High Availability (HA) is enabled but the anti-affinity rule is disabled. The backup pods might be distributed on the same node as the primary pods.
+{{- end }}
+
+{{- if (index .Values "manager" "service" "ports" "api" "node") }}
+If you are using minikube, you can get the minikube IP using the 'minikube ip' command.
+Insert the minikube IP in the following command to access the GigaSpaces REST API and to verify that your environment was set up properly:
+http://<minikube ip>:{{index .Values "manager" "service" "ports" "api" "node"}}
+{{- end }}

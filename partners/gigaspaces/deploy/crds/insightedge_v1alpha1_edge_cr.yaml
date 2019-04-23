@@ -1,0 +1,7 @@
+apiVersion: insightedge.example.com/v1alpha1
+kind: Edge
+metadata:
+  name: e
+spec:
+  # Add fields here
+  size: 3

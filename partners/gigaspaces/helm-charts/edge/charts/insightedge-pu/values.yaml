@@ -1,0 +1,70 @@
+# Default values for insightedge-pu.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: insightedge-pu
+image:
+  # repository: gigaspaces/insightedge-enterprise
+  # tag: "14.0.1"
+  pullPolicy: IfNotPresent #Always
+terminationGracePeriodSeconds: 30
+
+# license: Define the GigaSpaces InsightEdge licence key.
+# resource: Define the URL of Processing Unit JAR file.
+resourceUrl:
+# properties: Used to override the pu.xml properties that are defined as placeholders, receives string such as: memoryThreshold=7g (see documentation)
+properties:
+
+# schema: Define the cluster schema (optional)
+# valid values: partitioned, sync_replicated ,async_replicated
+# If the schema is not defined, the default value is based on the partitions property (see below).
+schema:
+
+# partitions: Define the number of partitions in the cluster.
+partitions:
+# HA: Define whether the cluster should be highly available.
+# Set the anti-affinity value to enabled=true to ensure pod distribution across different nodes.
+ha:
+
+# Define the pod anti-affinity
+antiAffinity:
+  # enabled: Define whether Pod anti-affinity is enabled.
+  enabled: false
+
+# Define the pod liveness probe
+livenessProbe:
+  # enabled: Define whether the liveness probe is enabled
+  enabled: false
+  # initialDelaySeconds: Number of seconds after the container has started before liveness probe is initiated
+  initialDelaySeconds: 10
+  # periodSeconds: How often (in seconds) to perform the probe
+  periodSeconds: 5
+  # failureThreshold: When the probe fails, how retries before restarting the Pod
+  failureThreshold: 3
+
+# instances: Define the number of instances (not applicable for `partitioned` schema)
+instances:
+
+# java: Define the Java options for each processing unit instance.
+java:
+  # heap: Define the size of the on-heap memory for each processing unit instance as either a percentage or an absolute value.
+  heap: limit-150Mi
+  # options: Configure additional Java options for each processing unit instance.
+  options:
+# resources: Configure the processing unit instance resources.
+resources:
+  # Best practice is do not specify default resources, so the user can configure independently.
+  # This can be especially risky when the chart is run on an environment with limited
+  # resources, such as a minikube. If you still want to configure specific resources, uncomment the following
+  # lines, adjust the values as necessary, and remove the curly brackets after 'resources:'.
+  limits:
+    memory: 400Mi
+
+# manager: Used when you install the Platform Manager separately; insert the Platform Manager release name here.
+manager:
+  name:
+  ports:
+    api: 8090
+  # discoveryTimeoutSeconds: Define the length of the timeout for checking if the Platform Manager is available.
+  # If the timeout expires and the Platform Manager is still unavailable, the init pod will restart.
+  discoveryTimeoutSeconds: 60
