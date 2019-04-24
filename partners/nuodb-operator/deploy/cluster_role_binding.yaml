@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: nuodb-ce-operator
+subjects:
+- kind: ServiceAccount
+  name: nuodb-ce-operator
+  namespace: nuodb-test
+roleRef:
+  kind: ClusterRole
+  name: nuodb-ce-operator
+  apiGroup: rbac.authorization.k8s.io

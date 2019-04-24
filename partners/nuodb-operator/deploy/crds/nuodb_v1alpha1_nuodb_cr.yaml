@@ -1,0 +1,23 @@
+# Example deployment of a  NuoDB CE Cluster with reduced SM and TE cpu
+# requirement so it can run in a small OpenShift cluster with limited
+# CPU cores. 
+
+apiVersion: nuodb.com/v1alpha1
+kind: Nuodb
+metadata:
+  name: nuodb
+spec:
+  # The storageMode is set to "ephemeral" by default so it can run in
+  # an OpenShift cluster without requring a Kubernetes persistent volume.
+  # NOTE: The NuoDB database will be created in volatile storage so the 
+  # database will be lost when the NuoDB SM is shutdown.
+  storageMode: ephemeral
+
+  replicaCount: 1
+
+  smCpu: 250m
+  teCpu: 250m
+
+  # Set insightsEnabled to "true" to indicate Opt-In to the NuoDB Insights Service.
+  insightsEnabled: false
+

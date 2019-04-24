@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nuodb-ce-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: nuodb-ce-operator
+  template:
+    metadata:
+      labels:
+        name: nuodb-ce-operator
+    spec:
+      serviceAccountName: nuodb-ce-operator
+      containers:
+        - name: nuodb-ce-operator
+          # Replace this with the built image name
+          image: quay.io/rhc4tp/nuodb-operator:v0.0.2
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "nuodb-operator"
