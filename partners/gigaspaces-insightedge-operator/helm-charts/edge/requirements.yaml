@@ -1,0 +1,14 @@
+dependencies:
+  - name: insightedge-manager
+    version: "14.0.1"
+    repository: file://../insightedge-manager
+    alias: manager
+  - name: insightedge-pu
+    version: "14.0.1"
+    repository: file://../insightedge-pu
+    alias: pu
+  - name: insightedge-zeppelin
+    version: "14.0.1"
+    repository: file://../insightedge-zeppelin
+    alias: zeppelin
+

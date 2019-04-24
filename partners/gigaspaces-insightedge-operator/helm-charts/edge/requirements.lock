@@ -1,0 +1,12 @@
+dependencies:
+- name: insightedge-manager
+  repository: file://../insightedge-manager
+  version: 14.0.1
+- name: insightedge-pu
+  repository: file://../insightedge-pu
+  version: 14.0.1
+- name: insightedge-zeppelin
+  repository: file://../insightedge-zeppelin
+  version: 14.0.1
+digest: sha256:b6ecc8a4349a7d38925d5c8556bfe012801e090c15949ce56ca5c18fe3550ecc
+generated: 2018-12-31T16:10:35.399986356+02:00
