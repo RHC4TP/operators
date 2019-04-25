@@ -1,0 +1,4 @@
+packageName: nuodb-ce-certified
+channels:
+- name: alpha
+  currentCSV: nuodb-ce-operator.v0.0.2
