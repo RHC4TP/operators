@@ -1,5 +1,5 @@
 packageName: newrelic-infrastructure
 channels:
   - name: alpha
-    currentCSV: newrelic-operator.v0.0.3
+    currentCSV: newrelic-operator.v0.0.2
 

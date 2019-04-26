@@ -27,12 +27,12 @@ metadata:
     categories: "Monitoring,OpenShift Optional"
     capabilities: "Basic Install"
     certified: "true"
-    containerImage: quay.io/rhc4tp/newrelic-operator:v0.0.3
+    containerImage: registry.connect.redhat.com/newrelic-openshift/newrelic-infra-agent
     createdAt: 2019-04-18T12:59:59Z
     description: Deploy the NewRelic agent from a helm chart onto your Kubernetes or OpenShift cluster
     repository: https://github.com/RHC4TP/operators/tree/master/partners/newrelic-operator
     support: Red Hat Connect
-  name: newrelic-operator.v0.0.3
+  name: newrelic-operator.v0.0.2
   namespace: "placeholder"
 spec:
   apiservicedefinitions: {}
@@ -174,7 +174,7 @@ spec:
                 containers:
                   - name: newrelic-operator
                     # Replace this with the built image name
-                    image: quay.io/rhc4tp/newrelic-operator:v0.0.3
+                    image: registry.connect.redhat.com/newrelic-openshift/newrelic-infra-agent
                     imagePullPolicy: Always
                     env:
                       - name: WATCH_NAMESPACE
@@ -274,4 +274,4 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat Partner Connect
-  version: 0.0.3
+  version: 0.0.2
