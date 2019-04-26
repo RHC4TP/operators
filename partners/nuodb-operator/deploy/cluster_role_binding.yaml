@@ -4,8 +4,8 @@ metadata:
   name: nuodb-ce-operator
 subjects:
 - kind: ServiceAccount
-  name: nuodb-ce-operator
-  namespace: nuodb-test
+  name: default
+  namespace: REPLACE_NAMESPACE
 roleRef:
   kind: ClusterRole
   name: nuodb-ce-operator
