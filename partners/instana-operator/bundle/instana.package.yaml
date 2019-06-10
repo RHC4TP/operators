@@ -1,4 +1,0 @@
-packageName: instana
-channels:
-  - name: alpha
-    currentCSV: instana-operator.v0.0.4

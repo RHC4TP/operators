@@ -1,5 +1,0 @@
-packageName: Sematext
-channels:
-    - name: alpha
-      currentCSV: sematext-agent-operator.v0.0.1
-

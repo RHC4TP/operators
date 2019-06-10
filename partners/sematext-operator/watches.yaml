@@ -1,5 +1,0 @@
----
-- version: v1alpha1
-  group: apigw.sematext.com
-  kind: Sematext
-  chart: /opt/helm/helm-charts/sematext-docker-agent

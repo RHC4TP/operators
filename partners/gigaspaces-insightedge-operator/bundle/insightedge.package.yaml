@@ -1,5 +1,0 @@
-packageName: insightedge-operator
-channels:
-  - name: alpha
-    currentCSV: insightedge-operator.v0.0.1
-

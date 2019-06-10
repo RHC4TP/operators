@@ -1,5 +1,0 @@
----
-- version: v1alpha1
-  group: nuodb.com
-  kind: Nuodb
-  chart: /opt/helm/helm-charts/nuodb-ce-helm
