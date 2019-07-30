@@ -1,0 +1,132 @@
+---
+# tasks file for nexus
+#
+- name: Provision Storage
+  k8s: 
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        labels:
+          app: nexus
+        name: "{{ meta.name }}-pv"
+        namespace: "{{ meta.namespace }}"
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "{{ volumeCapacity }}"
+
+- name: Create service
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: nexus
+        name: nexus
+        namespace: "{{ meta.namespace }}"
+      spec:
+        ports:
+        - name: 8081-tcp
+          port: 8081
+          protocol: TCP
+          targetPort: 8081
+        selector:
+          app: nexus
+        sessionAffinity: None
+        type: ClusterIP
+
+- name: Create Route
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Route
+      metadata:
+        labels:
+          app: nexus
+        name: nexus
+        namespace: "{{ meta.namespace }}"
+      spec:
+        port:
+          targetPort: 8081-tcp
+        to:
+          kind: Service
+          name: nexus
+          weight: 100
+
+- name: Create deployment
+  k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nexus
+        namespace: "{{ meta.namespace }}"        
+        labels:
+          app: nexus
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: nexus
+        strategy:
+          recreateParams:
+            timeoutSeconds: 600
+          type: RollingUpdate
+        template:
+          metadata:
+            labels:
+              app: nexus
+          spec:
+            containers:
+            - env:
+              - name: CONTEXT_PATH
+                value: /
+              image: 'registry.connect.redhat.com/sonatype/nexus-repository-manager:{{ nexusVersion }}'
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                exec:
+                  command:
+                  - echo
+                  - ok
+                failureThreshold: 3
+                initialDelaySeconds: 30
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              name: nexus
+              ports:
+              - containerPort: 8081
+                protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /
+                  port: 8081
+                  scheme: HTTP
+                initialDelaySeconds: 30
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  memory: "{{ maxMemory }}"
+                requests:
+                  memory: 512Mi
+              terminationMessagePath: /dev/termination-log
+              volumeMounts:
+              - mountPath: /nexus-data
+                name: "{{ meta.name }}-data" 
+            dnsPolicy: ClusterFirst
+            restartPolicy: Always
+            securityContext: {}
+            terminationGracePeriodSeconds: 30
+            volumes:
+            - name: "{{ meta.name }}-data" 
+              persistentVolumeClaim:
+                claimName: "{{ meta.name }}-pv"
+        test: false
+
