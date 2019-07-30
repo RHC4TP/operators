@@ -1,0 +1,12 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: nexus-operator
+  namespace: nexus-operator
+subjects:
+- kind: ServiceAccount
+  name: nexus-operator
+roleRef:
+  kind: Role
+  name: nexus-operator
+  apiGroup: rbac.authorization.k8s.io

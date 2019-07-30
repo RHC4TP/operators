@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: repomgr.sonatype.com
+  kind: Nexus
+  role: /opt/ansible/roles/nexus
