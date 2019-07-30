@@ -1,4 +1,0 @@
-- name: test nexus role
-  hosts: all
-  roles:
-  - nexus

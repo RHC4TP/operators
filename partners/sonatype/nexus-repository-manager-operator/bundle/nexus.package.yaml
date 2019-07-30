@@ -1,4 +1,0 @@
-packageName: nexus-operator
-channels:
-  - name: alpha
-    currentCSV: nexus-operator.v0.0.1
