@@ -1,0 +1,74 @@
+---
+# tasks file for memcached
+#
+- name: Provision service
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ memcached.fullname }}"
+        namespace: "{{ meta.namespace }}"
+        labels:
+          app: "{{ memcached.fullname }}"
+        annotations:
+      spec:
+        clusterIP: None
+        ports:
+        - name: memcache
+          port: 11211
+          targetPort: memcache
+        selector:
+          app: "{{ memcached.fullname }}"
+
+- name: Provision stateful set
+  k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: "{{ memcached.fullname }}"
+        namespace: "{{ meta.namespace }}"
+        labels:
+          app: "{{ memcached.fullname }}"
+      spec:
+        serviceName: "{{ memcached.fullname }}"
+        selector:
+          matchLabels:
+            app: "{{ memcached.fullname }}"
+        replicas: "{{ replicaCount }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ memcached.fullname }}"
+            annotations:
+          spec:
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                - topologyKey: "kubernetes.io/hostname"
+                  labelSelector:
+                    matchLabels:
+                      app:  "{{ memcached.fullname }}"
+            containers:
+            - name: "{{ memcached.fullname }}"
+              image: "{{ image }}"
+              imagePullPolicy: "{{ metrics.imagePullPolicy }}"
+              #command:
+              #- memcached
+              #- -m "{{ memcached.maxItemMemory }}"
+              ports:
+              - name: memcache
+                containerPort: 11211
+              livenessProbe:
+                tcpSocket:
+                  port: memcache
+                initialDelaySeconds: 30
+                timeoutSeconds: 5
+              readinessProbe:
+                tcpSocket:
+                  port: memcache
+                initialDelaySeconds: 5
+                timeoutSeconds: 1
+              resources:
+

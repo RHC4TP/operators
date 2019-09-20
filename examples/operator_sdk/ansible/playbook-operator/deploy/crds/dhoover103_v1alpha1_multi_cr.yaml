@@ -1,0 +1,7 @@
+apiVersion: dhoover103.test.com/v1alpha1
+kind: Multi
+metadata:
+  name: example-multi
+spec:
+  # Add fields here
+  size: 3

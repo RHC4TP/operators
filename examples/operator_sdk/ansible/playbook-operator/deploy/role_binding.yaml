@@ -1,0 +1,11 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: playbook-operator
+subjects:
+- kind: ServiceAccount
+  name: playbook-operator
+roleRef:
+  kind: Role
+  name: playbook-operator
+  apiGroup: rbac.authorization.k8s.io

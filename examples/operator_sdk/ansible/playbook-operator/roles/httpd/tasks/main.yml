@@ -1,0 +1,51 @@
+---
+# tasks file for httpd
+- name: start httpd
+  k8s:
+    definition:
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: '{{ meta.name }}-httpd'
+        namespace: '{{ meta.namespace }}'
+      spec:
+        replicas: "{{ size }}"
+        selector:
+          matchLabels:
+            app: httpd
+        template:
+          metadata:
+            labels:
+              app: httpd
+          spec:
+            containers:
+            - name: httpd
+              image: "registry.access.redhat.com/rhscl/httpd-24-rhel7"
+              ports:
+              - containerPort: 8080
+
+- name: create httpd service
+  k8s:
+    definition:
+      kind: Service
+      apiVersion: v1
+      metadata:
+        labels:
+          app: httpd
+        name: '{{ meta.name }}-httpd'
+        namespace: '{{ meta.namespace }}'
+      spec:
+        ports:
+        - name: 8080-tcp
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+        - name: 8443-tcp
+          port: 8443
+          protocol: TCP
+          targetPort: 8443
+        selector:
+          app: httpd
+        sessionAffinity: None
+        type: ClusterIP 
+
