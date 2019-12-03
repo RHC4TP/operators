@@ -20,6 +20,8 @@ spec:
     - kind: Nexus
       name: nexus.repomgr.sonatype.com
       version: v1alpha1
+      description: placeholder
+      displayName: Nexus
   description: Placeholder description
   displayName: Nexus Operator
   icon:
@@ -142,8 +144,8 @@ spec:
     - name: placeholder
       url: http://sonatype.example.operator.com/
   maintainers:
-    - name: RHSCL
-      email: RHSCL@example.com
+    - name: placeholder
+      email: placeholder@example.com
   provider: 
     name: placeholder
   version: 0.0.1
