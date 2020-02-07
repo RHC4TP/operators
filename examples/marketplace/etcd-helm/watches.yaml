@@ -1,8 +1,0 @@
----
-- version: v1alpha1
-  group: etcd.sample-etcd.com
-  kind: Etcd
-  chart: helm-charts/etcd
-  overrideValues:
-    image.image: $RELATED_IMAGE_STATEFULSET
-

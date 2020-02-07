@@ -1,7 +1,0 @@
-apiVersion: airgap.dhoover103.com/v1alpha1
-kind: Airgap
-metadata:
-  name: example-airgap
-spec:
-  # Add fields here
-  size: 3

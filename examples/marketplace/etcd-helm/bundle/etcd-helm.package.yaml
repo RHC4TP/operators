@@ -1,5 +1,0 @@
-channels:
-- currentCSV: etcd-helm.v0.0.1
-  name: alpha
-defaultChannel: alpha
-packageName: etcd-helm
