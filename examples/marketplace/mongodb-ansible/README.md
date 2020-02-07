@@ -28,3 +28,9 @@ Define the environment variables in the operator container. In the CSV and opera
           env:
             - name: RELATED_IMAGE_DB
               value: "registry.access.redhat.com/rhscl/mongodb-36-rhel7:latest"
+
+## OTHER THINGS TO WATCH FOR
+
+If you're in the habit of using the "latest" tag for your images, make sure you specify it. Because of how the automation is written that picks up these images, we need a tag to be present.
+
+All images must be certified in the registry.connect.redhat.com registry (The examples are in quay, but that won't work for the marketplace).
