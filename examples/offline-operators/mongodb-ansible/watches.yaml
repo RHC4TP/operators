@@ -1,5 +1,0 @@
----
-- version: v1alpha1
-  group: airgap.dhoover103.com
-  kind: Airgap
-  role: /opt/ansible/roles/airgap

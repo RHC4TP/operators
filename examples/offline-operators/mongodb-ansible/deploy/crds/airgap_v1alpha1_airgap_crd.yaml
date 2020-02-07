@@ -1,0 +1,19 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: airgaps.airgap.dhoover103.com
+spec:
+  group: airgap.dhoover103.com
+  names:
+    kind: Airgap
+    listKind: AirgapList
+    plural: airgaps
+    singular: airgap
+  scope: Namespaced
+  subresources:
+    status: {}
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true

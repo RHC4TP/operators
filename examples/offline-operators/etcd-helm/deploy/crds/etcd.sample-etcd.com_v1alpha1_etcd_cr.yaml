@@ -1,0 +1,32 @@
+apiVersion: etcd.sample-etcd.com/v1alpha1
+kind: Etcd
+metadata:
+  name: example-etcd
+spec:
+  # Default values copied from <project_dir>/helm-charts/etcd/values.yaml
+  
+  affinity: {}
+  auth:
+    client:
+      enableAuthentication: false
+      secureTransport: false
+    peer:
+      enableAuthentication: false
+      secureTransport: false
+      useAutoTLS: false
+  clientPort: 2379
+  component: etcd
+  extraEnv: []
+  image:
+    pullPolicy: IfNotPresent
+    repository: k8s.gcr.io/etcd-amd64
+    tag: 3.2.26
+  memoryMode: false
+  nodeSelector: {}
+  peerPort: 2380
+  persistentVolume:
+    enabled: false
+  replicas: 3
+  resources: {}
+  tolerations: []
+  
