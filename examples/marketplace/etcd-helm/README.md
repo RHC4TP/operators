@@ -44,4 +44,4 @@ Define the environment variables in the operator container and CSV. Declare the 
 
 If you're in the habit of using the "latest" tag for your images, make sure you specify it. Because of how the automation is written that picks up these images, we need a tag to be present.
 
-All images must be certified in the registry.connect.redhat.com registry (The examples are in quay, but that won't work for the marketplace).
+All images must be certified in the registry.connect.redhat.com registry (The examples are in other repos, but that won't actually work).
