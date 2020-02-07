@@ -27,8 +27,8 @@ Don't forget to add this new value to your Values.yaml file!
 
 In the watches.yaml file, add a field for overrideValues. It should contain each image value, should be set to an environment variable
 
-  overrideValues:
-    image.image: $RELATED_IMAGE_STATEFULSET
+    overrideValues:
+      image.image: $RELATED_IMAGE_STATEFULSET
 
 NOTE: the variable name MUST follow the pattern RELATED_IMAGE_<identifier>. There is code looking for that string in your operator.
 
