@@ -31,7 +31,7 @@
               emptyDir: {}
             containers:
             - name: mongodb
-              image: "{{ lookup('env','RELATED_IMAGE_DB') | quote }}"
+              image: "{{ image }}"
               ports:
               - containerPort: 27017
                 protocol: TCP
